@@ -63,3 +63,4 @@ data/
 workspaces/
 *.pid
 .worktrees/
+/ryuu_downloads/
