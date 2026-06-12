@@ -20,7 +20,6 @@ import type { GroupSearchData, SessionGroup, SessionNode } from './types';
 import { compareSessionsByPinnedAndTime, isBranchDifferentFromLabel, normalizePath, renderHighlightedText } from './utils';
 import type { SessionFolder } from '@/stores/useSessionFoldersStore';
 import { useSessionFoldersStore } from '@/stores/useSessionFoldersStore';
-import { useSessionDisplayStore } from '@/stores/useSessionDisplayStore';
 import { openExternalUrl } from '@/lib/url';
 import { useI18n } from '@/lib/i18n';
 
@@ -98,7 +97,7 @@ type Props = {
   compactBodyPadding?: boolean;
 };
 
-export function SessionGroupSection(props: Props): React.ReactNode {
+export function SessionGroupSectionComponent(props: Props): React.ReactNode {
   const { t } = useI18n();
   const {
     group,
@@ -155,9 +154,7 @@ export function SessionGroupSection(props: Props): React.ReactNode {
   }, [pinnedSessionIds, sessionOrderIndex]);
 
   const searchData = hasSessionSearchQuery ? groupSearchDataByGroup.get(group) : null;
-  const displayMode = useSessionDisplayStore((state) => state.displayMode);
   const foldersMap = useSessionFoldersStore((state) => state.foldersMap);
-  const isMinimalMode = displayMode === 'minimal';
   const isCollapsed = hasSessionSearchQuery ? false : collapsedGroups.has(groupKey);
   const maxVisible = hideDirectoryControls ? 10 : 5;
   const nonArchivedVisibleCount = Math.max(maxVisible, visibleSessionCount ?? maxVisible);
@@ -556,13 +553,9 @@ export function SessionGroupSection(props: Props): React.ReactNode {
   const hasWorktreeDeleteAction = Boolean(!group.isMain && group.worktree);
   const groupHeaderRightPadding = alwaysShowActions
     ? (hasWorktreeDeleteAction ? 'pr-14' : 'pr-7')
-    : isMinimalMode
-      ? (hasWorktreeDeleteAction
-          ? 'pr-2 group-hover/gh:pr-14 group-focus-within/gh:pr-14'
-          : 'pr-2')
-      : (hasWorktreeDeleteAction
-          ? 'pr-5 group-hover/gh:pr-14 group-focus-within/gh:pr-14'
-          : 'pr-5');
+    : (hasWorktreeDeleteAction
+        ? 'pr-5 group-hover/gh:pr-14 group-focus-within/gh:pr-14'
+        : 'pr-5');
 
   const body = (
     <SessionFolderDndScope
@@ -897,4 +890,35 @@ export function SessionGroupSection(props: Props): React.ReactNode {
       {!isCollapsed ? <div className={cn('oc-group-body', groupBodyPaddingClass)}>{body}</div> : null}
     </div>
   );
-}
+};
+
+const areGroupPropsEqual = (prev: Props, next: Props): boolean => {
+  if (prev.group !== next.group) return false;
+  if (prev.groupKey !== next.groupKey) return false;
+  if (prev.projectId !== next.projectId) return false;
+  if (prev.hideGroupLabel !== next.hideGroupLabel) return false;
+  if (prev.hasSessionSearchQuery !== next.hasSessionSearchQuery) return false;
+  if (prev.normalizedSessionSearchQuery !== next.normalizedSessionSearchQuery) return false;
+  if (prev.visibleSessionCount !== next.visibleSessionCount) return false;
+  if (prev.collapsedGroups !== next.collapsedGroups) return false;
+  if (prev.hideDirectoryControls !== next.hideDirectoryControls) return false;
+  if (prev.collapsedFolderIds !== next.collapsedFolderIds) return false;
+  if (prev.showDeletionDialog !== next.showDeletionDialog) return false;
+  if (prev.currentSessionDirectory !== next.currentSessionDirectory) return false;
+  if (prev.projectRepoStatus !== next.projectRepoStatus) return false;
+  if (prev.lastRepoStatus !== next.lastRepoStatus) return false;
+  if (prev.mobileVariant !== next.mobileVariant) return false;
+  if (prev.alwaysShowActions !== next.alwaysShowActions) return false;
+  if (prev.activeProjectId !== next.activeProjectId) return false;
+  if (prev.renamingFolderId !== next.renamingFolderId) return false;
+  if (prev.renameFolderDraft !== next.renameFolderDraft) return false;
+  if (prev.pinnedSessionIds !== next.pinnedSessionIds) return false;
+  if (prev.sessionOrderIndex !== next.sessionOrderIndex) return false;
+  if (prev.prVisualStateByDirectoryBranch !== next.prVisualStateByDirectoryBranch) return false;
+  if (prev.dragHandleProps !== next.dragHandleProps) return false;
+  if (prev.compactBodyPadding !== next.compactBodyPadding) return false;
+  if (prev.groupSearchDataByGroup !== next.groupSearchDataByGroup) return false;
+  return true;
+};
+
+export const SessionGroupSection = React.memo(SessionGroupSectionComponent, areGroupPropsEqual);

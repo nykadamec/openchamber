@@ -2,6 +2,8 @@ import React from 'react';
 import type { Session } from '@opencode-ai/sdk/v2';
 import { toast } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
+
+declare const __APP_VERSION__: string | undefined;
 import { useDeviceInfo } from '@/lib/device';
 import { isDesktopShell } from '@/lib/desktop';
 import { sessionEvents } from '@/lib/sessionEvents';
@@ -25,7 +27,6 @@ import { useSessionSidebarSections } from './sidebar/hooks/useSessionSidebarSect
 import { useProjectSessionSelection } from './sidebar/hooks/useProjectSessionSelection';
 import { useGroupOrdering } from './sidebar/hooks/useGroupOrdering';
 import { useSessionGrouping } from './sidebar/hooks/useSessionGrouping';
-import { useSessionSearchEffects } from './sidebar/hooks/useSessionSearchEffects';
 import { useSessionActions } from './sidebar/hooks/useSessionActions';
 import { useSidebarPersistence } from './sidebar/hooks/useSidebarPersistence';
 import { useProjectRepoStatus } from './sidebar/hooks/useProjectRepoStatus';
@@ -163,10 +164,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
   showOnlyMainWorkspace = false,
 }) => {
   const { t } = useI18n();
-  const [isSessionSearchOpen, setIsSessionSearchOpen] = React.useState(false);
   const [sessionSearchQuery, setSessionSearchQuery] = React.useState('');
-  const sessionSearchContainerRef = React.useRef<HTMLDivElement | null>(null);
-  const sessionSearchInputRef = React.useRef<HTMLInputElement | null>(null);
   const retriedNoPrStatusKeysRef = React.useRef<Set<string>>(new Set());
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editTitle, setEditTitle] = React.useState('');
@@ -293,13 +291,6 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
   const cleanupSessions = useSessionFoldersStore((state) => state.cleanupSessions);
   const getSessionFolderId = useSessionFoldersStore((state) => state.getSessionFolderId);
 
-  useSessionSearchEffects({
-    isSessionSearchOpen,
-    setIsSessionSearchOpen,
-    sessionSearchInputRef,
-    sessionSearchContainerRef,
-  });
-
   const gitBranches = useGitAllBranches();
 
   const sync = useSync();
@@ -323,6 +314,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
     available: s.available,
     runtimeType: s.runtimeType,
     info: s.info,
+    checking: s.checking,
     downloading: s.downloading,
     downloaded: s.downloaded,
     progress: s.progress,
@@ -560,6 +552,19 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
     });
   }, [t, updateStore]);
 
+  const handleCheckForUpdates = React.useCallback(() => {
+    void updateStore.checkForUpdates().then(() => {
+      const { available, error } = useUpdateStore.getState();
+      if (error) {
+        toast.error(t('sessions.sidebar.updateCheck.errorTitle'), { description: error });
+        return;
+      }
+      if (!available) {
+        toast.success(t('sessions.sidebar.updateCheck.latestVersion'));
+      }
+    });
+  }, [t, updateStore]);
+
   const handleOpenSettings = React.useCallback(() => {
     if (mobileVariant) {
       setSessionSwitcherOpen(false);
@@ -567,9 +572,14 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
     setSettingsDialogOpen(true);
   }, [mobileVariant, setSessionSwitcherOpen, setSettingsDialogOpen]);
 
-  const showSidebarUpdateButton =
-    updateStore.available &&
-    (updateStore.runtimeType === 'desktop' || updateStore.runtimeType === 'web');
+  const showSidebarUpdateButton = !isVSCode;
+
+  const displayVersion = React.useMemo(() => {
+    if (typeof __APP_VERSION__ === 'string' && __APP_VERSION__.trim().length > 0) {
+      return __APP_VERSION__.trim();
+    }
+    return updateStore.info?.currentVersion?.trim() || 'unknown';
+  }, [updateStore.info?.currentVersion]);
 
   const deleteSession = useSessionUIStore((state) => state.deleteSession);
   const deleteSessions = useSessionUIStore((state) => state.deleteSessions);
@@ -594,10 +604,8 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
     mobileVariant,
     allowReselect,
     onSessionSelected,
-    isSessionSearchOpen,
     sessionSearchQuery,
     setSessionSearchQuery,
-    setIsSessionSearchOpen,
     setActiveProjectIdOnly,
     setDirectory,
     setActiveMainTab,
@@ -1587,7 +1595,6 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
 
   return (
     <div
-      ref={sessionSearchContainerRef}
       className={cn(
         'relative flex h-full flex-col text-foreground overflow-x-hidden',
         mobileVariant ? '' : 'bg-transparent',
@@ -1602,9 +1609,6 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
         openMultiRunLauncher={handleOpenMultiRunFromHeader}
         headerActionIconClass={headerActionIconClass}
         headerActionButtonClass={headerActionButtonClass}
-        isSessionSearchOpen={isSessionSearchOpen}
-        setIsSessionSearchOpen={setIsSessionSearchOpen}
-        sessionSearchInputRef={sessionSearchInputRef}
         sessionSearchQuery={sessionSearchQuery}
         setSessionSearchQuery={setSessionSearchQuery}
         hasSessionSearchQuery={hasSessionSearchQuery}
@@ -1671,8 +1675,12 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
         onOpenShortcuts={toggleHelpDialog}
         onOpenAbout={() => setAboutDialogOpen(true)}
         onOpenUpdate={handleOpenUpdateDialog}
+        onCheckForUpdates={handleCheckForUpdates}
         showRuntimeButtons={!isVSCode}
         showUpdateButton={showSidebarUpdateButton}
+        updateAvailable={updateStore.available}
+        appVersion={displayVersion}
+        checking={updateStore.checking}
       />
 
       <UpdateDialog

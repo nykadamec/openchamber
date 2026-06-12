@@ -163,7 +163,7 @@ export const SortableProjectItem: React.FC<SortableProjectItemProps> = ({
                     >
                     <span className="inline-flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center">
                       <span className={cn(
-                        'h-3.5 w-3.5 items-center justify-center text-muted-foreground',
+                        'h-3.5 w-3.5 items-center justify-center text-muted-foreground/70',
                         alwaysShowActions ? 'inline-flex' : 'hidden group-hover/project:inline-flex group-focus-within/project:inline-flex',
                       )}>
                         {isCollapsed ? <Icon name="arrow-right-s" className="h-3.5 w-3.5" /> : <Icon name="arrow-down-s" className="h-3.5 w-3.5" />}
@@ -186,19 +186,19 @@ export const SortableProjectItem: React.FC<SortableProjectItemProps> = ({
                             fallback={projectIconName ? (
                               <Icon name={projectIconName} className="h-3.5 w-3.5" style={iconColor ? { color: iconColor } : undefined} />
                             ) : (
-                              <Icon name="folder" className="h-3.5 w-3.5 text-muted-foreground/80" style={iconColor ? { color: iconColor } : undefined} />
+                              <Icon name="folder" className="h-3.5 w-3.5 text-muted-foreground/70" style={iconColor ? { color: iconColor } : undefined} />
                             )}
                           />
                         </span>
                       ) : projectIconName ? (
                         <Icon name={projectIconName} className={cn('h-3.5 w-3.5', alwaysShowActions ? 'hidden' : 'group-hover/project:hidden group-focus-within/project:hidden')} style={iconColor ? { color: iconColor } : undefined} />
                       ) : (
-                        <Icon name="folder" className={cn('h-3.5 w-3.5 text-muted-foreground/80', alwaysShowActions ? 'hidden' : 'group-hover/project:hidden group-focus-within/project:hidden')} style={iconColor ? { color: iconColor } : undefined} />
+                        <Icon name="folder" className={cn('h-3.5 w-3.5 text-muted-foreground/70', alwaysShowActions ? 'hidden' : 'group-hover/project:hidden group-focus-within/project:hidden')} style={iconColor ? { color: iconColor } : undefined} />
                       )}
                     </span>
                     <span className={cn(
-                      'text-[14px] font-normal truncate lowercase',
-                      isActiveProject ? 'text-foreground' : 'text-foreground group-hover/project:text-foreground',
+                      'text-[13px] font-medium truncate lowercase',
+                      isActiveProject ? 'text-foreground' : 'text-foreground/80 group-hover/project:text-foreground',
                     )}>
                       {projectLabel}
                     </span>

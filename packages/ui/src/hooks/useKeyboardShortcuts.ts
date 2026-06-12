@@ -135,6 +135,12 @@ export const useKeyboardShortcuts = () => {
         return;
       }
 
+      if (eventMatchesShortcut(e, combo('focus_sidebar_search'))) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('openchamber:focus-sidebar-search'));
+        return;
+      }
+
       if (eventMatchesShortcut(e, combo('open_timeline_dialog'))) {
         e.preventDefault();
         setTimelineDialogOpen(true);

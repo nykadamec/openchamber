@@ -19,10 +19,8 @@ type Args = {
   mobileVariant: boolean;
   allowReselect: boolean;
   onSessionSelected?: (sessionId: string) => void;
-  isSessionSearchOpen: boolean;
   sessionSearchQuery: string;
   setSessionSearchQuery: (value: string) => void;
-  setIsSessionSearchOpen: (open: boolean) => void;
   setActiveProjectIdOnly: (id: string) => void;
   setDirectory: (directory: string, options?: { showOverlay?: boolean }) => void;
   setActiveMainTab: (tab: MainTab) => void;
@@ -65,11 +63,10 @@ export const useSessionActions = (args: Args) => {
       }
 
       const resetSessionSearch = () => {
-        if (!args.isSessionSearchOpen && args.sessionSearchQuery.length === 0) {
+        if (args.sessionSearchQuery.length === 0) {
           return;
         }
         args.setSessionSearchQuery('');
-        args.setIsSessionSearchOpen(false);
       };
 
       if (projectId && projectId !== args.activeProjectId) {
