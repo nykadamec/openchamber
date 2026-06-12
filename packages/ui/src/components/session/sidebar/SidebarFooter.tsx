@@ -41,7 +41,7 @@ export function SidebarFooter({
   const { t } = useI18n();
 
   return (
-    <div className="flex shrink-0 items-center justify-start gap-0.5 border-t border-border/40 px-2 py-1.5">
+    <div className="flex shrink-0 items-center justify-start gap-0.5 border-t border-border/60 bg-surface-muted/30 px-2 py-1.5 transition-colors motion-reduce:transition-none">
       {showRuntimeButtons ? (
         <>
           <Tooltip>
