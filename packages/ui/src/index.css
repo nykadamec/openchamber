@@ -299,6 +299,16 @@ textarea[data-chat-input="true"]:focus-visible {
   -webkit-appearance: none;
 }
 
+/* Floating chat input: translucent surface with blur fallback.
+   The main container owns the floating background/shadow; footer stays transparent. */
+[data-chat-input="true"] {
+  background: transparent !important;
+}
+
+[data-chat-input="true"]::placeholder {
+  color: color-mix(in srgb, var(--muted-foreground) 70%, transparent);
+}
+
 /* Scroll shadow (HeroUI) fallback styling to ensure visible gradients without the Tailwind plugin */
 [data-scroll-shadow="true"] {
   --scroll-shadow-size: var(--scroll-shadow-size, 48px);

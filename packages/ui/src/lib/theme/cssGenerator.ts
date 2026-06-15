@@ -231,6 +231,10 @@ const sidebarBaseRgb = hexToRgb(theme.colors.surface.muted);
     vars.push(`  --surface-elevated-foreground: ${surface.elevatedForeground};`);
     vars.push(`  --surface-overlay: ${surface.overlay};`);
     vars.push(`  --surface-subtle: ${surface.subtle};`);
+    // Floating surface: a translucent, elevated layer used for floating inputs/cards.
+    // Derived from elevated with a safe fallback if opacity helpers fail.
+    vars.push(`  --surface-floating: ${this.opacity(surface.elevated, 0.72)};`);
+    vars.push(`  --surface-floating-foreground: ${surface.elevatedForeground};`);
     return vars;
   }
 
@@ -365,6 +369,10 @@ const sidebarBaseRgb = hexToRgb(theme.colors.surface.muted);
 
   private generateComponentColors(colors: Theme['colors'], theme: Theme): string[] {
     const vars: string[] = [];
+
+    // Floating/shadow token for elevated inputs (chat composer, etc.)
+    vars.push(`  --shadow-floating: ${theme.colors.shadows?.md || '0 12px 32px rgba(0, 0, 0, 0.32)'};`);
+    vars.push(`  --shadow-floating-sm: ${theme.colors.shadows?.sm || '0 2px 8px rgba(0, 0, 0, 0.22)'};`);
 
     if (colors.markdown) {
       vars.push(...this.generateMarkdownColors(colors.markdown, theme));

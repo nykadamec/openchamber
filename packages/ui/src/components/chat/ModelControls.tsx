@@ -2271,7 +2271,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                             <DropdownMenuTrigger asChild>
                                 <div
                                     className={cn(
-                                        'model-controls__model-trigger flex items-center gap-1.5 cursor-pointer hover:bg-transparent hover:opacity-70 min-w-0',
+                                        'model-controls__model-trigger flex items-center gap-1.5 cursor-pointer hover:bg-transparent min-w-0',
                                         buttonHeight
                                     )}
                                 >
@@ -2597,7 +2597,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                         <DropdownMenuTrigger asChild>
                             <div
                                 className={cn(
-                                    'model-controls__variant-trigger flex items-center gap-1.5 transition-colors cursor-pointer hover:bg-transparent hover:opacity-70 min-w-0',
+                                    'model-controls__variant-trigger flex items-center gap-1.5 transition-colors cursor-pointer hover:bg-transparent min-w-0',
                                     buttonHeight,
                                 )}
                             >
@@ -2659,7 +2659,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                             <TooltipTrigger asChild>
                                 <DropdownMenuTrigger asChild>
                                     <div className={cn(
-                                        'flex items-center gap-1.5 transition-colors cursor-pointer hover:bg-transparent hover:opacity-70 min-w-0',
+                                        'flex items-center gap-1.5 transition-colors cursor-pointer hover:bg-transparent min-w-0',
                                         buttonHeight
                                     )}>
                                         {!isReady ? (
@@ -2843,6 +2843,27 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
         className,
     );
 
+    const renderDesktopPill = () => {
+        if (isCompact) return null;
+        return (
+            <div
+                className={cn(
+                    'flex items-center min-w-0',
+                    'bg-[var(--interactive-hover)]/30',
+                    'hover:bg-[var(--interactive-hover)]/50',
+                    'rounded-full',
+                    'pl-1.5 pr-1',
+                    buttonHeight,
+                    inlineGapClass
+                )}
+            >
+                {renderVariantSelector()}
+                {renderModelSelector()}
+                {renderAgentSelector()}
+            </div>
+        );
+    };
+
     return (
         <>
             <div className={inlineClassName}>
@@ -2853,9 +2874,15 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                         isMobile && 'overflow-hidden'
                     )}
                 >
-                    {renderVariantSelector()}
-                    {renderModelSelector()}
-                    {renderAgentSelector()}
+                    {isCompact ? (
+                        <>
+                            {renderVariantSelector()}
+                            {renderModelSelector()}
+                            {renderAgentSelector()}
+                        </>
+                    ) : (
+                        renderDesktopPill()
+                    )}
                 </div>
             </div>
 

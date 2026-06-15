@@ -631,7 +631,6 @@ const PermissionAutoAcceptButton = React.memo(function PermissionAutoAcceptButto
             onClick={handlePermissionAutoAcceptToggle}
             className={cn(
                 footerIconButtonClass,
-                'rounded-md hover:bg-transparent',
                 !permissionScopeSessionId && 'opacity-30',
             )}
             onMouseDown={(event) => {
@@ -689,10 +688,9 @@ const FocusModeButton = React.memo(function FocusModeButton(props: FocusModeButt
                     type="button"
                     className={cn(
                         footerIconButtonClass,
-                        'rounded-md',
                         isExpandedInput
-                            ? 'text-primary'
-                            : 'text-foreground hover:bg-[var(--interactive-hover)]/40'
+                            ? 'text-primary bg-[var(--interactive-hover)]/30'
+                            : 'text-foreground'
                     )}
                     onMouseDown={(event) => {
                         event.preventDefault();
@@ -762,9 +760,8 @@ const ComposerActionButtons = React.memo(function ComposerActionButtons(props: C
             }}
             className={cn(
                 footerIconButtonClass,
-                canSend && (currentSessionId || newSessionDraftOpen)
-                    ? 'text-primary hover:text-primary'
-                    : 'opacity-30'
+                'bg-[var(--primary-base)] text-[var(--primary-foreground)] hover:opacity-90 hover:bg-[var(--primary-base)] active:opacity-80',
+                (!canSend || (!currentSessionId && !newSessionDraftOpen)) && 'opacity-40'
             )}
             aria-label={t('chat.chatInput.actions.sendMessageAria')}
         >
@@ -803,7 +800,7 @@ const ComposerActionButtons = React.memo(function ComposerActionButtons(props: C
                 onClick={onAbort}
                 className={cn(
                     footerIconButtonClass,
-                    'text-[var(--status-error)] hover:text-[var(--status-error)]'
+                    'text-[var(--status-error)] hover:bg-[var(--status-error)]/10'
                 )}
                 aria-label={t('chat.chatInput.actions.stopGeneratingAria')}
             >
@@ -1113,7 +1110,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
     }, [currentSessionId, currentDirectory, t]);
 
     const isDesktopExpanded = isExpandedInput && !isMobile;
-    const chatInputRadius = 'var(--radius-xl)';
+    const chatInputRadius = 'var(--radius-2xl)';
     const useCompactChatPlaceholder = isMobile || isNarrowComposer;
 
     React.useEffect(() => {
@@ -3540,7 +3537,6 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
         event.target.value = '';
     }, [attachFiles]);
 
-    const footerGapClass = 'gap-x-1.5 gap-y-0';
     const isVSCode = isVSCodeRuntime();
     const showDraftTargetSelectors = newSessionDraftOpen && !isVSCode;
 
@@ -3843,14 +3839,19 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
         });
     }, [draftBranchItems, newSessionDraft?.bootstrapPendingDirectory, newSessionDraft?.pendingWorktreeRequestId, newSessionDraft?.preserveDirectoryOverride, selectedDraftDirectory, selectedDraftProject, setNewSessionDraftTarget, showDraftTargetSelectors]);
 
-    const footerPaddingClass = isMobile ? 'px-1.5 py-1.5' : (isVSCode ? 'px-1.5 py-1' : 'px-2.5 py-1.5');
-    const buttonSizeClass = isMobile ? 'h-8 w-8' : (isVSCode ? 'h-5 w-5' : 'h-6 w-6');
-    const sendIconSizeClass = isMobile ? 'h-4 w-4' : (isVSCode ? 'h-3.5 w-3.5' : 'h-4 w-4');
-    const stopIconSizeClass = isMobile ? 'h-6 w-6' : (isVSCode ? 'h-4 w-4' : 'h-5 w-5');
+    const footerPaddingClass = isMobile ? 'px-2 py-2' : (isVSCode ? 'px-2.5 py-1.5' : 'px-3 py-2');
+    const buttonSizeClass = isMobile ? 'h-8 w-8' : (isVSCode ? 'h-6 w-6' : 'h-7 w-7');
+    const sendIconSizeClass = isMobile ? 'h-4 w-4' : (isVSCode ? 'h-4 w-4' : 'h-4 w-4');
+    const stopIconSizeClass = isMobile ? 'h-5 w-5' : (isVSCode ? 'h-4 w-4' : 'h-[18px] w-[18px]');
     const iconSizeClass = isMobile ? 'h-[18px] w-[18px]' : (isVSCode ? 'h-4 w-4' : 'h-[18px] w-[18px]');
 
-    const iconButtonBaseClass = 'flex cursor-pointer items-center justify-center text-foreground transition-none outline-none focus:outline-none flex-shrink-0 disabled:cursor-not-allowed';
-    const footerIconButtonClass = cn(iconButtonBaseClass, buttonSizeClass);
+    const iconButtonBaseClass = 'flex cursor-pointer items-center justify-center text-foreground outline-none focus:outline-none flex-shrink-0 disabled:cursor-not-allowed transition-colors duration-150';
+    const footerIconButtonClass = cn(
+        iconButtonBaseClass,
+        buttonSizeClass,
+        'rounded-full hover:bg-[var(--interactive-hover)]/40 active:bg-[var(--interactive-active)]/50'
+    );
+    const footerGapClass = 'gap-x-1 gap-y-0';
     const permissionScopeSessionId = currentSessionId ?? currentManagementSessionId;
     const permissionAutoAcceptEnabled = usePermissionStore((state) => {
         if (!permissionScopeSessionId) {
@@ -4105,12 +4106,14 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                     sessionId={currentSessionId}
                     directory={currentSessionDirectoryForSync ?? currentDirectory}
                 />
-                <MemoStatusRow
-                    showAbortStatus={showAbortStatus}
-                    showAssistantStatus={false}
-                    showTodos
-                    leftAccessory={newSessionDraftOpen || !hasPendingChanges ? null : <PendingChangesBar />}
-                />
+                <div className="mb-2">
+                    <MemoStatusRow
+                        showAbortStatus={showAbortStatus}
+                        showAssistantStatus={false}
+                        showTodos
+                        leftAccessory={newSessionDraftOpen || !hasPendingChanges ? null : <PendingChangesBar />}
+                    />
+                </div>
                 {showDraftTargetSelectors && selectedDraftProject ? (
                     <div className="mb-1.5 flex min-w-0 items-center gap-1.5 px-0.5">
                         <Select
@@ -4189,16 +4192,21 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                     className={cn(
                         "flex flex-col relative overflow-visible",
                         isDesktopExpanded && 'flex-1 min-h-0',
-                        "border border-border/80",
-                        "focus-within:ring-1",
+                        "bg-[var(--surface-floating)]",
+                        "backdrop-blur-md",
+                        "ring-1 ring-inset ring-border/20",
+                        "shadow-[var(--shadow-floating-sm)]",
+                        "hover:shadow-[var(--shadow-floating)]",
+                        "focus-within:shadow-[var(--shadow-floating)]",
+                        "focus-within:ring-2",
                         inputMode === 'shell'
-                            ? 'focus-within:ring-[var(--status-info)]'
-                            : 'focus-within:ring-primary/50',
+                            ? 'focus-within:ring-[var(--status-info)]/40'
+                            : 'focus-within:ring-[var(--interactive-focus-ring)]/40',
+                        "transition-shadow duration-250 ease-out",
                         isDragging && "ring-2 ring-primary ring-offset-2"
                     )}
                     style={{
                         borderRadius: chatInputRadius,
-                        backgroundColor: currentTheme?.colors?.surface?.subtle,
                     }}
                     ref={dropZoneRef}
                     onDropCapture={handleDropCapture}
@@ -4209,7 +4217,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                     onDragEnd={handleDragEnd}
                 >
                     {isDragging && (
-                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/90 rounded-xl">
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/90 rounded-[var(--radius-2xl)]">
                             <div className="text-center">
                                 <div className="inline-flex justify-center">
                                     <button
@@ -4376,12 +4384,12 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                                 fillContainer={isDesktopExpanded}
                                 outerClassName={cn('ring-0 bg-transparent shadow-none hover:bg-transparent focus-within:ring-0', isDesktopExpanded && 'flex-1 min-h-0')}
                                 className={cn(
-                                    'min-h-[52px] resize-none border-0 px-3 rounded-b-none appearance-none hover:border-transparent bg-transparent relative z-10',
+                                    'min-h-[60px] resize-none border-0 px-4 rounded-b-none appearance-none hover:border-transparent bg-transparent relative z-10',
                                     isDesktopExpanded
-                                        ? 'h-full min-h-0 py-4'
+                                        ? 'h-full min-h-0 py-5'
                                         : isMobile
-                                            ? 'py-2.5'
-                                            : 'pt-4 pb-2',
+                                            ? 'py-3'
+                                            : 'pt-5 pb-3',
                                     inputMode === 'shell' && 'font-mono',
                                     highlightedComposerContent && 'text-transparent caret-[var(--surface-foreground)]',
                                 )}
