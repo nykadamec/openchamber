@@ -5,6 +5,7 @@ import { FireworksProvider } from '@/contexts/FireworksContext';
 import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
 import { MemoryDebugPanel } from '@/components/ui/MemoryDebugPanel';
+import { DebugPanel } from '@/components/ui/DebugPanel';
 import { setStreamPerfEnabled } from '@/stores/utils/streamDebug';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 // useEventStream removed — replaced by SyncProvider + SyncBridge
@@ -224,6 +225,8 @@ function App({ apis }: AppProps) {
   const setDirectory = useDirectoryStore((state) => state.setDirectory);
   const isSwitchingDirectory = useDirectoryStore((state) => state.isSwitchingDirectory);
   const [showMemoryDebug, setShowMemoryDebug] = React.useState(false);
+  const isDebugPanelOpen = useUIStore((s) => s.isDebugPanelOpen);
+  const setDebugPanelOpen = useUIStore((s) => s.setDebugPanelOpen);
   const refreshGitHubAuthStatus = useGitHubAuthStore((state) => state.refreshStatus);
   const [isVSCodeRuntime, setIsVSCodeRuntime] = React.useState<boolean>(() => apis.runtime.isVSCode);
   const [isEmbeddedVisible, setIsEmbeddedVisible] = React.useState(true);
@@ -942,6 +945,9 @@ function App({ apis }: AppProps) {
                       <AboutDialogWrapper />
                       {showMemoryDebug && (
                         <MemoryDebugPanel onClose={() => setShowMemoryDebug(false)} />
+                      )}
+                      {isDebugPanelOpen && (
+                        <DebugPanel onClose={() => setDebugPanelOpen(false)} />
                       )}
                     </>
                   )}

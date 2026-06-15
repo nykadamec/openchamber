@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.12.4] - 2026-06-11
+
+- i18n: Czech (cs) locale from 1.12.3 preserved and carried forward.
+- Build: version bumped to 1.12.4 across all workspace packages.
+- Note: this fork retains the 1.12.3 codebase and applies a focused cherry-pick against upstream v1.12.4. New upstream 1.12.4 features (/handoff-review, Mermaid diagram editor, settings search, vim mode, fast-path worktree, context menu, Git changed-file folders revert) were not transferred in this release because each requires coordinated changes across multiple subsystems (server APIs, SDK types, runtime registry, i18n keys) that conflict with the fork's preservation goals and the no-new-deps constraint.
+
 ## [Unreleased]
 
 ## [1.13.0] - 2026-06-15

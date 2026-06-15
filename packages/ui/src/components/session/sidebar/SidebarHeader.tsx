@@ -23,9 +23,6 @@ type Props = {
   openMultiRunLauncher: () => void;
   headerActionIconClass: string;
   headerActionButtonClass: string;
-  isSessionSearchOpen: boolean;
-  setIsSessionSearchOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
-  sessionSearchInputRef: React.RefObject<HTMLInputElement | null>;
   sessionSearchQuery: string;
   setSessionSearchQuery: (value: string) => void;
   hasSessionSearchQuery: boolean;
@@ -48,9 +45,6 @@ export function SidebarHeader(props: Props): React.ReactNode {
     openMultiRunLauncher,
     headerActionIconClass,
     headerActionButtonClass,
-    isSessionSearchOpen,
-    setIsSessionSearchOpen,
-    sessionSearchInputRef,
     sessionSearchQuery,
     setSessionSearchQuery,
     hasSessionSearchQuery,
@@ -63,23 +57,34 @@ export function SidebarHeader(props: Props): React.ReactNode {
   } = props;
 
   const displayMode = useSessionDisplayStore((state) => state.displayMode);
+  const setDisplayMode = useSessionDisplayStore((state) => state.setDisplayMode);
   const showRecentSection = useSessionDisplayStore((state) => state.showRecentSection);
   const showArchivedSessions = useSessionDisplayStore((state) => state.showArchivedSessions);
-  const setDisplayMode = useSessionDisplayStore((state) => state.setDisplayMode);
   const toggleRecentSection = useSessionDisplayStore((state) => state.toggleRecentSection);
   const toggleArchivedSessions = useSessionDisplayStore((state) => state.toggleArchivedSessions);
   // VS Code forces the expanded layout, so the mode toggle is meaningless there.
   const showDisplayModeToggle = !isVSCodeRuntime();
+
+  const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  React.useEffect(() => {
+    const handleFocusSearch = () => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    };
+    window.addEventListener('openchamber:focus-sidebar-search', handleFocusSearch);
+    return () => window.removeEventListener('openchamber:focus-sidebar-search', handleFocusSearch);
+  }, []);
 
   if (hideDirectoryControls) {
     return null;
   }
 
   return (
-    <div className="select-none flex-shrink-0 px-2.5 py-1">
-      <div className="flex h-auto min-h-8 flex-col gap-1">
-        <div className="flex h-8 items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5">
+    <div className="select-none flex-shrink-0 px-2.5 pt-1 pb-1.5">
+      <div className="flex h-auto min-h-8 flex-col gap-1.5">
+        <div className="flex h-8 items-center justify-between gap-1">
+          <div className="flex items-center gap-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
@@ -138,28 +143,16 @@ export function SidebarHeader(props: Props): React.ReactNode {
             </Tooltip>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => setIsSessionSearchOpen((prev) => !prev)}
-                  className={headerActionButtonClass}
-                  aria-label={t('sessions.sidebar.header.actions.searchSessions')}
-                  aria-expanded={isSessionSearchOpen}
-                >
-                  <Icon name="search" className={headerActionIconClass} />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={4}><p>{t('sessions.sidebar.header.actions.searchSessions')}</p></TooltipContent>
-            </Tooltip>
-
+          <div className="flex items-center gap-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type="button"
                   onClick={onToggleSelectionMode}
-                  className={cn(headerActionButtonClass, selectionModeEnabled && 'bg-interactive-hover text-primary')}
+                  className={cn(
+                    headerActionButtonClass,
+                    selectionModeEnabled && 'bg-interactive-selection text-interactive-selection-foreground hover:bg-interactive-selection/90'
+                  )}
                   aria-label={selectionModeEnabled
                     ? t('sessions.sidebar.header.actions.exitSelection')
                     : t('sessions.sidebar.header.actions.selectSessions')}
@@ -242,48 +235,42 @@ export function SidebarHeader(props: Props): React.ReactNode {
           </div>
         </div>
 
-        {isSessionSearchOpen ? (
-          <div className="pb-1">
-            <div className="mb-1 flex items-center justify-between px-0.5 typography-micro text-muted-foreground/80">
-              {hasSessionSearchQuery ? (
-                <span>{searchMatchCount === 1
-                  ? t('sessions.sidebar.header.search.matchCountSingle', { count: searchMatchCount })
-                  : t('sessions.sidebar.header.search.matchCountPlural', { count: searchMatchCount })}</span>
-              ) : <span />}
-              <span>{t('sessions.sidebar.header.search.escapeHint')}</span>
-            </div>
-            <div className="relative">
-              <Icon name="search" className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                ref={sessionSearchInputRef}
-                value={sessionSearchQuery}
-                onChange={(event) => setSessionSearchQuery(event.target.value)}
-                placeholder={t('sessions.sidebar.header.search.placeholder')}
-                className="h-8 w-full rounded-md border border-border bg-transparent pl-8 pr-8 typography-ui-label text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape') {
-                    event.stopPropagation();
-                    if (hasSessionSearchQuery) {
-                      setSessionSearchQuery('');
-                    } else {
-                      setIsSessionSearchOpen(false);
-                    }
-                  }
-                }}
-              />
-              {sessionSearchQuery.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setSessionSearchQuery('')}
-                  className="absolute right-1 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-interactive-hover/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                  aria-label={t('sessions.sidebar.header.search.clear')}
-                >
-                  <Icon name="close" className="h-3.5 w-3.5" />
-                </button>
-              ) : null}
-            </div>
+        <div className="pb-0.5">
+          <div className="mb-1 flex items-center justify-between px-0.5 typography-micro text-muted-foreground/80">
+            {hasSessionSearchQuery ? (
+              <span>{searchMatchCount === 1
+                ? t('sessions.sidebar.header.search.matchCountSingle', { count: searchMatchCount })
+                : t('sessions.sidebar.header.search.matchCountPlural', { count: searchMatchCount })}</span>
+            ) : <span />}
+            <span>{t('sessions.sidebar.header.search.escapeHint')}</span>
           </div>
-        ) : null}
+          <div className="group/search relative">
+            <Icon name="search" className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/70 transition-colors group-focus-within/search:text-foreground/80" />
+            <input
+              ref={searchInputRef}
+              value={sessionSearchQuery}
+              onChange={(event) => setSessionSearchQuery(event.target.value)}
+              placeholder={t('sessions.sidebar.header.search.placeholder')}
+              className="h-8 w-full rounded-md border border-border/60 bg-surface-muted/30 pl-8 pr-8 typography-ui-label text-foreground placeholder:text-muted-foreground/60 outline-none transition-colors focus-visible:border-primary/40 focus-visible:bg-surface-muted/50 focus-visible:ring-2 focus-visible:ring-primary/30 motion-reduce:transition-none"
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                  event.stopPropagation();
+                  setSessionSearchQuery('');
+                }
+              }}
+            />
+            {sessionSearchQuery.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setSessionSearchQuery('')}
+                className="absolute right-1 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-interactive-hover/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                aria-label={t('sessions.sidebar.header.search.clear')}
+              >
+                <Icon name="close" className="h-3.5 w-3.5" />
+              </button>
+            ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );

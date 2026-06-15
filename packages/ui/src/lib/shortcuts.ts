@@ -119,6 +119,13 @@ const SHORTCUT_ACTIONS: ReadonlyArray<ShortcutAction> = [
     customizable: true,
   },
   {
+    id: 'focus_sidebar_search',
+    defaultCombo: 'mod+shift+f',
+    label: 'Focus sidebar search',
+    description: 'Focus the session search in the sidebar',
+    customizable: true,
+  },
+  {
     id: 'focus_input',
     defaultCombo: 'mod+i',
     label: 'Focus input',

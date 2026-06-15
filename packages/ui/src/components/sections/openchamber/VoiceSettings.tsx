@@ -34,6 +34,7 @@ const LANGUAGE_OPTIONS = [
     { value: 'it-IT', label: 'Italiano' },
     { value: 'ko-KR', label: '한국어' },
     { value: 'uk-UA', label: 'Українська' },
+    { value: 'cs-CZ', label: 'Čeština' },
 ];
 
 const WasmModelStatusIndicator = ({ modelId }: { modelId: string }) => {

@@ -1,13 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type SessionDisplayMode = 'default' | 'minimal';
-
 type SessionDisplayStore = {
-  displayMode: SessionDisplayMode;
+  displayMode: 'default' | 'minimal';
   showRecentSection: boolean;
   showArchivedSessions: boolean;
-  setDisplayMode: (mode: SessionDisplayMode) => void;
+  setDisplayMode: (mode: 'default' | 'minimal') => void;
   setShowRecentSection: (show: boolean) => void;
   setShowArchivedSessions: (show: boolean) => void;
   toggleRecentSection: () => void;
@@ -17,15 +15,10 @@ type SessionDisplayStore = {
 export const useSessionDisplayStore = create<SessionDisplayStore>()(
   persist(
     (set) => ({
-      displayMode: 'minimal',
+      displayMode: 'default',
       showRecentSection: true,
-      // Default to HIDDEN so the pre-hydration state matches the quiet/safe
-      // option: archived sessions must never flash visible on startup and then
-      // disappear once the persisted preference rehydrates. Users who opted into
-      // showing archived have `true` persisted, which is preserved on rehydrate.
-      showArchivedSessions: false,
+      showArchivedSessions: true,
       setDisplayMode: (mode) => set({ displayMode: mode }),
-      setShowRecentSection: (show) => set({ showRecentSection: show }),
       setShowArchivedSessions: (show) => set({ showArchivedSessions: show }),
       toggleRecentSection: () => set((state) => ({ showRecentSection: !state.showRecentSection })),
       toggleArchivedSessions: () => set((state) => ({ showArchivedSessions: !state.showArchivedSessions })),
