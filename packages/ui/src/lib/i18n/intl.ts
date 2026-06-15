@@ -4,6 +4,7 @@ import type { Locale } from './runtime';
 const INTL_LOCALE_BY_LOCALE: Record<Locale, string> = {
   en: 'en-US',
   fr: 'fr-FR',
+  cs: 'cs-CZ',
   'zh-CN': 'zh-CN',
   'zh-TW': 'zh-TW',
   uk: 'uk-UA',

@@ -19,6 +19,7 @@ export const useSessionDisplayStore = create<SessionDisplayStore>()(
       showRecentSection: true,
       showArchivedSessions: true,
       setDisplayMode: (mode) => set({ displayMode: mode }),
+      setShowRecentSection: (show) => set({ showRecentSection: show }),
       setShowArchivedSessions: (show) => set({ showArchivedSessions: show }),
       toggleRecentSection: () => set((state) => ({ showRecentSection: !state.showRecentSection })),
       toggleArchivedSessions: () => set((state) => ({ showArchivedSessions: !state.showArchivedSessions })),
