@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Settings/Appearance: added an "Enable experimental sidebar" toggle (default off) that switches the project/session list to a redesigned card-based layout. Header, search bar, and footer are unchanged.
+
 ## [1.13.0] - 2026-06-15
 
 - Security: LAN and remote browser access now require a UI password before the server will start.

@@ -16,26 +16,11 @@ import type { SortableDragHandleProps } from './sortableItems';
 import { SortableGroupItem, SortableProjectItem } from './sortableItems';
 import { formatProjectLabel } from './utils';
 import { useI18n } from '@/lib/i18n';
-import { useUIStore } from '@/stores/useUIStore';
 import type { MainTab } from '@/stores/useUIStore';
-import { MinimalProjectsList } from './MinimalProjectsList';
-
-export type ProjectSection = {
-  project: {
-    id: string;
-    label?: string;
-    normalizedPath: string;
-    icon?: string;
-    color?: string;
-    iconImage?: { mime: string; updatedAt: number; source: 'custom' | 'auto' };
-    iconBackground?: string;
-  };
-  groups: SessionGroup[];
-};
+import type { ProjectSection } from './SidebarProjectsList';
 
 type Props = {
   topContent?: React.ReactNode;
-  sharedSessionsOnly?: boolean;
   hasSharedSessions?: boolean;
   sectionsForRender: ProjectSection[];
   projectSections: ProjectSection[];
@@ -70,9 +55,8 @@ type Props = {
   isInlineEditing: boolean;
 };
 
-export function SidebarProjectsList(props: Props): React.ReactNode {
+export function MinimalProjectsList(props: Props): React.ReactNode {
   const { t } = useI18n();
-  const experimentalSidebar = useUIStore((state) => state.experimentalSidebar);
   const projectSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -81,32 +65,28 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
-  if (experimentalSidebar && !props.sharedSessionsOnly) {
-    return <MinimalProjectsList {...props} />;
-  }
-
-  if (props.sharedSessionsOnly) {
+  if (props.projectSections.length === 0) {
     return (
-      <ScrollableOverlay useScrollShadow scrollShadowSize={96} outerClassName="flex-1 min-h-0" className={cn('space-y-1 pb-1 pr-2', props.mobileVariant ? '' : '')}>
+      <ScrollableOverlay useScrollShadow scrollShadowSize={96} outerClassName="flex-1 min-h-0" className={cn('space-y-1 pb-1 pl-2.5 pr-2')}>
         {props.topContent}
-        {!props.hasSharedSessions ? (props.hasSessionSearchQuery ? props.searchEmptyState : props.emptyState) : null}
+        {props.emptyState}
       </ScrollableOverlay>
     );
   }
 
-  if (props.projectSections.length === 0) {
-    return <ScrollableOverlay useScrollShadow scrollShadowSize={96} outerClassName="flex-1 min-h-0" className={cn('space-y-1 pb-1 pl-2.5 pr-2', props.mobileVariant ? '' : '')}>{props.topContent}{props.emptyState}</ScrollableOverlay>;
-  }
-
   if (props.sectionsForRender.length === 0) {
-    return <ScrollableOverlay useScrollShadow scrollShadowSize={96} outerClassName="flex-1 min-h-0" className={cn('space-y-1 pb-1 pl-2.5 pr-2', props.mobileVariant ? '' : '')}>{props.searchEmptyState}</ScrollableOverlay>;
+    return (
+      <ScrollableOverlay useScrollShadow scrollShadowSize={96} outerClassName="flex-1 min-h-0" className={cn('space-y-1 pb-1 pl-2.5 pr-2')}>
+        {props.searchEmptyState}
+      </ScrollableOverlay>
+    );
   }
 
   return (
-    <ScrollableOverlay useScrollShadow scrollShadowSize={96} outerClassName="flex-1 min-h-0" className={cn('space-y-1 pb-1 pl-2.5 pr-2', props.mobileVariant ? '' : '')}>
+    <ScrollableOverlay useScrollShadow scrollShadowSize={96} outerClassName="flex-1 min-h-0" className={cn('space-y-3 pb-2 pl-2.5 pr-2 pt-1')}>
       {props.topContent}
       {props.showOnlyMainWorkspace ? (
-        <div className="space-y-[0.6rem] py-1">
+        <div className="space-y-3">
           {(() => {
             const activeSection = props.sectionsForRender.find((section) => section.project.id === props.activeProjectId) ?? props.sectionsForRender[0];
             if (!activeSection) {
@@ -138,21 +118,21 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
           })()}
         </div>
       ) : (
-        <>
-          <DndContext
-            sensors={projectSensors}
-            collisionDetection={closestCenter}
-            onDragEnd={(event) => {
-              if (props.isInlineEditing) return;
-              const { active, over } = event;
-              if (!over || active.id === over.id) return;
-              const oldIndex = props.sectionsForRender.findIndex((section) => section.project.id === active.id);
-              const newIndex = props.sectionsForRender.findIndex((section) => section.project.id === over.id);
-              if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
-              props.reorderProjects(oldIndex, newIndex);
-            }}
-          >
-            <SortableContext items={props.sectionsForRender.map((section) => section.project.id)} strategy={verticalListSortingStrategy}>
+        <DndContext
+          sensors={projectSensors}
+          collisionDetection={closestCenter}
+          onDragEnd={(event) => {
+            if (props.isInlineEditing) return;
+            const { active, over } = event;
+            if (!over || active.id === over.id) return;
+            const oldIndex = props.sectionsForRender.findIndex((section) => section.project.id === active.id);
+            const newIndex = props.sectionsForRender.findIndex((section) => section.project.id === over.id);
+            if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+            props.reorderProjects(oldIndex, newIndex);
+          }}
+        >
+          <SortableContext items={props.sectionsForRender.map((section) => section.project.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-3">
               {props.sectionsForRender.map((section) => {
                 const project = section.project;
                 const projectKey = project.id;
@@ -162,8 +142,9 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
                   || project.normalizedPath,
                 );
                 const projectDescription = formatPathForDisplay(project.normalizedPath, props.homeDirectory);
-                const isCollapsed = props.collapsedProjects.has(projectKey);
                 const isActiveProject = projectKey === props.activeProjectId;
+                // In minimal view the active project is always expanded so it is visible.
+                const isCollapsed = isActiveProject ? false : props.collapsedProjects.has(projectKey);
                 const isRepo = props.projectRepoStatus.get(projectKey);
                 const orderedGroups = props.getOrderedGroups(projectKey, section.groups);
                 const rootGroup = orderedGroups.find((group) => group.isMain) ?? null;
@@ -189,7 +170,10 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
                     hideDirectoryControls={props.hideDirectoryControls}
                     mobileVariant={props.mobileVariant}
                     alwaysShowActions={props.alwaysShowActions}
-                    onToggle={() => props.toggleProject(projectKey)}
+                    onToggle={() => {
+                      if (isActiveProject) return;
+                      props.toggleProject(projectKey);
+                    }}
                     onNewSession={() => {
                       if (projectKey !== props.activeProjectId) props.setActiveProjectIdOnly(projectKey);
                       props.setActiveMainTab('chat');
@@ -205,11 +189,16 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
                     onClose={() => props.removeProject(projectKey)}
                     sentinelRef={(el) => { props.projectHeaderSentinelRefs.current.set(projectKey, el); }}
                     showCreateButtons
+                    wrapperClassName={cn(
+                      'rounded-xl border border-border/60 bg-card p-2.5 shadow-sm transition-colors',
+                      isActiveProject && 'border-primary/30 bg-primary/5',
+                    )}
+                    contentClassName="pt-2"
                     openSidebarMenuKey={props.openSidebarMenuKey}
                     setOpenSidebarMenuKey={props.setOpenSidebarMenuKey}
                   >
                     {!isCollapsed ? (
-                      <div className="space-y-0 pt-0 pb-0.5 pl-3">
+                      <div className="space-y-0 pb-0.5">
                         {section.groups.length > 0 ? (
                           <DndContext
                             sensors={groupSensors}
@@ -251,10 +240,10 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
                   </SortableProjectItem>
                 );
               })}
-            </SortableContext>
-            <DragOverlay dropAnimation={null} />
-          </DndContext>
-        </>
+            </div>
+          </SortableContext>
+          <DragOverlay dropAnimation={null} />
+        </DndContext>
       )}
     </ScrollableOverlay>
   );

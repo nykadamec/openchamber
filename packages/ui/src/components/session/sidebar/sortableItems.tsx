@@ -40,6 +40,10 @@ export interface SortableProjectItemProps {
   children?: React.ReactNode;
   showCreateButtons?: boolean;
   hideHeader?: boolean;
+  /** Optional className applied to the outer DND wrapper. */
+  wrapperClassName?: string;
+  /** Optional className applied to the children content wrapper. */
+  contentClassName?: string;
   openSidebarMenuKey: string | null;
   setOpenSidebarMenuKey: (key: string | null) => void;
 }
@@ -73,6 +77,8 @@ export const SortableProjectItem: React.FC<SortableProjectItemProps> = ({
   children,
   showCreateButtons = true,
   hideHeader = false,
+  wrapperClassName,
+  contentClassName,
   openSidebarMenuKey,
   setOpenSidebarMenuKey,
 }) => {
@@ -149,7 +155,7 @@ export const SortableProjectItem: React.FC<SortableProjectItemProps> = ({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn('relative', isDragging && 'opacity-30')}
+      className={cn('relative', isDragging && 'opacity-30', wrapperClassName)}
     >
       {!hideHeader ? (
         <>
@@ -337,7 +343,9 @@ export const SortableProjectItem: React.FC<SortableProjectItemProps> = ({
         </>
       ) : null}
 
-      {children}
+      {children ? (
+        <div className={contentClassName}>{children}</div>
+      ) : null}
     </div>
   );
 };
