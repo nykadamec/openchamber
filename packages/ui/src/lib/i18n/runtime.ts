@@ -1,11 +1,12 @@
-export type Locale = 'en' | 'zh-CN' | 'zh-TW' | 'uk' | 'es' | 'pt-BR' | 'ko' | 'pl';
+export type Locale = 'en' | 'cs' | 'zh-CN' | 'zh-TW' | 'uk' | 'es' | 'pt-BR' | 'ko' | 'pl';
 
-export const LOCALES = ['en', 'zh-CN', 'zh-TW', 'uk', 'es', 'pt-BR', 'ko', 'pl'] as const satisfies readonly Locale[];
+export const LOCALES = ['en', 'cs', 'zh-CN', 'zh-TW', 'uk', 'es', 'pt-BR', 'ko', 'pl'] as const satisfies readonly Locale[];
 
 export const DEFAULT_LOCALE: Locale = 'en';
 
-export const LOCALE_LABEL_KEYS: Record<Locale, 'common.language.english' | 'common.language.simplifiedChinese' | 'common.language.traditionalChinese' | 'common.language.ukrainian' | 'common.language.spanish' | 'common.language.brazilianPortuguese' | 'common.language.korean' | 'common.language.polish'> = {
+export const LOCALE_LABEL_KEYS: Record<Locale, 'common.language.english' | 'common.language.czech' | 'common.language.simplifiedChinese' | 'common.language.traditionalChinese' | 'common.language.ukrainian' | 'common.language.spanish' | 'common.language.brazilianPortuguese' | 'common.language.korean' | 'common.language.polish'> = {
   en: 'common.language.english',
+  cs: 'common.language.czech',
   'zh-CN': 'common.language.simplifiedChinese',
   'zh-TW': 'common.language.traditionalChinese',
   uk: 'common.language.ukrainian',
@@ -41,6 +42,9 @@ export function normalizeLocale(value: string | undefined | null): Locale {
   }
   if (normalized === 'uk' || normalized.startsWith('uk-') || normalized === 'ua' || normalized.startsWith('ua-')) {
     return 'uk';
+  }
+  if (normalized === 'cs' || normalized.startsWith('cs-')) {
+    return 'cs';
   }
   if (normalized === 'es' || normalized.startsWith('es-')) {
     return 'es';

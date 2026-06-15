@@ -326,6 +326,7 @@ export const dict = {
   'sessions.sidebar.footer.actions.settings': 'Nastavení',
   'sessions.sidebar.footer.actions.shortcuts': 'Zkratky',
   'sessions.sidebar.footer.actions.aboutOpenChamber': 'O OpenChamber',
+  'sessions.sidebar.footer.actions.debug': 'Ladění',
   'sessions.sidebar.footer.actions.update': 'Aktualizovat',
   'sessions.sidebar.footer.versionTooltip': 'Zkontrolovat aktualizace',
   'sessions.sidebar.empty.noSessions.title': 'Zatím žádné relace',

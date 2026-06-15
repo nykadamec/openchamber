@@ -9,6 +9,7 @@ type Props = {
   onOpenSettings: () => void;
   onOpenShortcuts: () => void;
   onOpenAbout: () => void;
+  onOpenDebug: () => void;
   onOpenUpdate: () => void;
   onCheckForUpdates: () => void;
   showRuntimeButtons?: boolean;
@@ -30,6 +31,7 @@ export function SidebarFooter({
   onOpenSettings,
   onOpenShortcuts,
   onOpenAbout,
+  onOpenDebug,
   onOpenUpdate,
   onCheckForUpdates,
   showRuntimeButtons = true,
@@ -68,6 +70,14 @@ export function SidebarFooter({
             </TooltipTrigger>
             <TooltipContent side="top" sideOffset={4}><p>{t('sessions.sidebar.footer.actions.aboutOpenChamber')}</p></TooltipContent>
           </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button type="button" onClick={onOpenDebug} className={footerButtonClassName} aria-label={t('sessions.sidebar.footer.actions.debug')}>
+                <Icon name="bug" className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={4}><p>{t('sessions.sidebar.footer.actions.debug')}</p></TooltipContent>
+          </Tooltip>
         </>
       ) : null}
       {showUpdateButton ? (
@@ -100,7 +110,7 @@ export function SidebarFooter({
                 aria-label={t('sessions.sidebar.footer.versionTooltip')}
                 className={cn(
                   'group/version ml-auto inline-flex h-6 items-center gap-1 rounded-md px-2',
-                  'text-[11px] font-medium leading-none tracking-[0.01em]',
+                  'text-[10px] font-medium leading-none tracking-[0.01em]',
                   'text-muted-foreground/60 hover:text-foreground/90',
                   'transition-colors duration-150 ease-out',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50',
@@ -108,13 +118,8 @@ export function SidebarFooter({
                   'font-mono tabular-nums',
                 )}
               >
-                {checking ? (
+                {checking && (
                   <Icon name="loader-4" className="size-3 animate-spin text-muted-foreground/60" />
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    className="inline-flex h-1.5 w-1.5 animate-pulse rounded-full bg-muted-foreground/50 motion-reduce:animate-none"
-                  />
                 )}
                 <span className="relative">
                   v{appVersion}

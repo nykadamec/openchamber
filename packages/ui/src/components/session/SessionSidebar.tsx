@@ -261,6 +261,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
   const setSettingsDialogOpen = useUIStore((state) => state.setSettingsDialogOpen);
   const toggleHelpDialog = useUIStore((state) => state.toggleHelpDialog);
   const setAboutDialogOpen = useUIStore((state) => state.setAboutDialogOpen);
+  const setDebugPanelOpen = useUIStore((state) => state.setDebugPanelOpen);
   const setSessionSwitcherOpen = useUIStore((state) => state.setSessionSwitcherOpen);
   const setScheduledTasksDialogOpen = useUIStore((state) => state.setScheduledTasksDialogOpen);
   const openMultiRunLauncher = useUIStore((state) => state.openMultiRunLauncher);
@@ -1674,6 +1675,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
         onOpenSettings={handleOpenSettings}
         onOpenShortcuts={toggleHelpDialog}
         onOpenAbout={() => setAboutDialogOpen(true)}
+        onOpenDebug={() => setDebugPanelOpen(true)}
         onOpenUpdate={handleOpenUpdateDialog}
         onCheckForUpdates={handleCheckForUpdates}
         showRuntimeButtons={!isVSCode}
