@@ -25,6 +25,7 @@ export interface SortableProjectItemProps {
   projectIconBackground?: string;
   isCollapsed: boolean;
   isActiveProject: boolean;
+  isFocusedProject: boolean;
   isRepo: boolean;
   isDesktopShell: boolean;
   isStuck: boolean;
@@ -34,6 +35,7 @@ export interface SortableProjectItemProps {
   onToggle: () => void;
   onNewSession: () => void;
   onNewWorktreeSession?: () => void;
+  onToggleFocus: () => void;
   onRenameStart: () => void;
   onClose: () => void;
   sentinelRef: (el: HTMLDivElement | null) => void;
@@ -63,6 +65,7 @@ export const SortableProjectItem: React.FC<SortableProjectItemProps> = ({
   projectIconBackground,
   isCollapsed,
   isActiveProject,
+  isFocusedProject,
   isRepo,
   isDesktopShell,
   isStuck,
@@ -71,6 +74,7 @@ export const SortableProjectItem: React.FC<SortableProjectItemProps> = ({
   onToggle,
   onNewSession,
   onNewWorktreeSession,
+  onToggleFocus,
   onRenameStart,
   onClose,
   sentinelRef,
@@ -250,6 +254,35 @@ export const SortableProjectItem: React.FC<SortableProjectItemProps> = ({
                 'absolute top-1/2 z-10 flex -translate-y-1/2 items-center gap-1',
                 showCreateButtons ? 'right-7' : 'right-0.5',
               )}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFocus();
+                      }}
+                      className={cn(
+                        'inline-flex h-6 w-6 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:text-foreground transition-opacity',
+                        isFocusedProject
+                          ? 'text-foreground opacity-100 pointer-events-auto'
+                          : 'text-muted-foreground opacity-0 pointer-events-none group-hover/project:opacity-100 group-hover/project:pointer-events-auto group-focus-within/project:opacity-100 group-focus-within/project:pointer-events-auto',
+                        alwaysShowActions && !isFocusedProject && 'opacity-100',
+                      )}
+                      aria-label={isFocusedProject
+                        ? t('sessions.sidebar.project.actions.unfocusProject')
+                        : t('sessions.sidebar.project.actions.focusProject')}
+                    >
+                      <Icon name="focus-3" className="h-4 w-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={4}>
+                    <p>{isFocusedProject
+                      ? t('sessions.sidebar.project.actions.unfocusProjectTooltip')
+                      : t('sessions.sidebar.project.actions.focusProjectTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+
                 {showCreateButtons && isRepo && !hideDirectoryControls && onNewWorktreeSession ? (
                   <Tooltip>
                     <TooltipTrigger asChild>

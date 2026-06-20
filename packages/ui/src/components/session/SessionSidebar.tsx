@@ -252,8 +252,10 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
 
   const projects = useProjectsStore((state) => state.projects);
   const activeProjectId = useProjectsStore((state) => state.activeProjectId);
+  const focusedProjectId = useProjectsStore((state) => state.focusedProjectId);
   const removeProject = useProjectsStore((state) => state.removeProject);
   const setActiveProjectIdOnly = useProjectsStore((state) => state.setActiveProjectIdOnly);
+  const toggleFocusedProjectId = useProjectsStore((state) => state.toggleFocusedProjectId);
   const updateProjectMeta = useProjectsStore((state) => state.updateProjectMeta);
   const reorderProjects = useProjectsStore((state) => state.reorderProjects);
 
@@ -1645,6 +1647,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
         sectionsForRender={sectionsForSidebarRender}
         projectSections={projectSections}
         activeProjectId={activeProjectId}
+        focusedProjectId={focusedProjectId}
         showOnlyMainWorkspace={showOnlyMainWorkspace}
         hasSessionSearchQuery={hasSessionSearchQuery}
         emptyState={emptyState}
@@ -1660,6 +1663,7 @@ export const SessionSidebar: React.FC<SessionSidebarProps> = ({
         alwaysShowActions={alwaysShowSidebarActions}
         toggleProject={toggleProject}
         setActiveProjectIdOnly={setActiveProjectIdOnly}
+        toggleFocusedProjectId={toggleFocusedProjectId}
         setActiveMainTab={setActiveMainTab}
         setSessionSwitcherOpen={setSessionSwitcherOpen}
         openNewSessionDraft={openNewSessionDraftFromTree}

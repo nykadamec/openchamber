@@ -46,11 +46,14 @@ interface VSCodeWorkspaceFolderConfig {
 interface ProjectsStore {
   projects: ProjectEntry[];
   activeProjectId: string | null;
+  focusedProjectId: string | null;
 
   addProject: (path: string, options?: { label?: string; id?: string }) => ProjectEntry | null;
   removeProject: (id: string) => void;
   setActiveProject: (id: string) => void;
   setActiveProjectIdOnly: (id: string) => void;
+  setFocusedProjectId: (id: string | null) => void;
+  toggleFocusedProjectId: (id: string) => void;
   renameProject: (id: string, label: string) => void;
   updateProjectMeta: (id: string, meta: { label?: string; icon?: string | null; color?: string | null; iconBackground?: string | null }) => void;
   uploadProjectIcon: (id: string, file: File) => Promise<{ ok: boolean; error?: string }>;
@@ -67,6 +70,7 @@ interface ProjectsStore {
 const safeStorage = getSafeStorage();
 const PROJECTS_STORAGE_KEY = 'projects';
 const ACTIVE_PROJECT_STORAGE_KEY = 'activeProjectId';
+const FOCUSED_PROJECT_STORAGE_KEY = 'focusedProjectId';
 
 const getLocalRuntimeOrigin = (): string => {
   if (typeof window === 'undefined') return '';
@@ -88,6 +92,11 @@ const getProjectsStorageKey = (): string => {
 const getActiveProjectStorageKey = (): string => {
   const namespace = getProjectsStorageNamespace();
   return namespace ? `${ACTIVE_PROJECT_STORAGE_KEY}:${encodeURIComponent(namespace)}` : ACTIVE_PROJECT_STORAGE_KEY;
+};
+
+const getFocusedProjectStorageKey = (): string => {
+  const namespace = getProjectsStorageNamespace();
+  return namespace ? `${FOCUSED_PROJECT_STORAGE_KEY}:${encodeURIComponent(namespace)}` : FOCUSED_PROJECT_STORAGE_KEY;
 };
 
 const shouldReadLegacyProjectsCache = (): boolean => {
@@ -303,6 +312,32 @@ const readPersistedActiveProjectId = (): string | null => {
   return null;
 };
 
+const readPersistedFocusedProjectId = (): string | null => {
+  try {
+    const raw = safeStorage.getItem(getFocusedProjectStorageKey())
+      || (shouldReadLegacyProjectsCache() ? safeStorage.getItem(FOCUSED_PROJECT_STORAGE_KEY) : null);
+    if (typeof raw === 'string' && raw.trim().length > 0) {
+      return raw.trim();
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const persistFocusedProjectId = (id: string | null) => {
+  try {
+    const key = getFocusedProjectStorageKey();
+    if (id) {
+      safeStorage.setItem(key, id);
+    } else {
+      safeStorage.removeItem(key);
+    }
+  } catch {
+    // ignored
+  }
+};
+
 const cacheProjects = (projects: ProjectEntry[], activeProjectId: string | null) => {
   try {
     safeStorage.setItem(getProjectsStorageKey(), JSON.stringify(projects));
@@ -502,6 +537,11 @@ const initialActiveProjectId = effectiveInitialProjects.some((project) => projec
   ? persistedInitialActiveProjectId
   : effectiveInitialProjects[0]?.id ?? null;
 
+const persistedInitialFocusedProjectId = isVSCodeProjectsRuntime ? null : readPersistedFocusedProjectId();
+const initialFocusedProjectId = effectiveInitialProjects.some((project) => project.id === persistedInitialFocusedProjectId)
+  ? persistedInitialFocusedProjectId
+  : null;
+
 if (vscodeWorkspace) {
   cacheProjects(effectiveInitialProjects, initialActiveProjectId);
 }
@@ -510,6 +550,7 @@ export const useProjectsStore = create<ProjectsStore>()(
   devtools((set, get) => ({
     projects: effectiveInitialProjects,
     activeProjectId: initialActiveProjectId,
+    focusedProjectId: initialFocusedProjectId,
 
     validateProjectPath: (path: string): ProjectPathValidationResult => {
       if (typeof path !== 'string' || path.trim().length === 0) {
@@ -573,13 +614,18 @@ export const useProjectsStore = create<ProjectsStore>()(
       const project = current.projects.find((p) => p.id === id);
       const nextProjects = current.projects.filter((project) => project.id !== id);
       let nextActiveId = current.activeProjectId;
+      let nextFocusedId = current.focusedProjectId;
 
       if (current.activeProjectId === id) {
         nextActiveId = nextProjects[0]?.id ?? null;
       }
+      if (current.focusedProjectId === id) {
+        nextFocusedId = null;
+      }
 
-      set({ projects: nextProjects, activeProjectId: nextActiveId });
+      set({ projects: nextProjects, activeProjectId: nextActiveId, focusedProjectId: nextFocusedId });
       persistProjects(nextProjects, nextActiveId);
+      persistFocusedProjectId(nextFocusedId);
 
       // Clean up worktree entries for the removed project
       if (project) {
@@ -620,8 +666,14 @@ export const useProjectsStore = create<ProjectsStore>()(
         project.id === id ? { ...project, lastOpenedAt: now } : project
       );
 
-      set({ projects: nextProjects, activeProjectId: id });
+      const currentFocused = get().focusedProjectId;
+      const nextFocused = currentFocused && currentFocused !== id ? null : currentFocused;
+
+      set({ projects: nextProjects, activeProjectId: id, focusedProjectId: nextFocused });
       persistProjects(nextProjects, id);
+      if (nextFocused !== currentFocused) {
+        persistFocusedProjectId(nextFocused);
+      }
 
       opencodeClient.setDirectory(target.path);
       useDirectoryStore.getState().setDirectory(target.path, { showOverlay: false });
@@ -645,8 +697,28 @@ export const useProjectsStore = create<ProjectsStore>()(
         project.id === id ? { ...project, lastOpenedAt: now } : project
       );
 
-      set({ projects: nextProjects, activeProjectId: id });
+      const currentFocused = get().focusedProjectId;
+      const nextFocused = currentFocused && currentFocused !== id ? null : currentFocused;
+
+      set({ projects: nextProjects, activeProjectId: id, focusedProjectId: nextFocused });
       persistProjects(nextProjects, id);
+      if (nextFocused !== currentFocused) {
+        persistFocusedProjectId(nextFocused);
+      }
+    },
+
+    setFocusedProjectId: (id: string | null) => {
+      const { projects } = get();
+      if (id !== null && !projects.some((project) => project.id === id)) {
+        return;
+      }
+      set({ focusedProjectId: id });
+      persistFocusedProjectId(id);
+    },
+
+    toggleFocusedProjectId: (id: string) => {
+      const { focusedProjectId } = get();
+      get().setFocusedProjectId(focusedProjectId === id ? null : id);
     },
 
     renameProject: (id: string, label: string) => {
@@ -833,10 +905,14 @@ export const useProjectsStore = create<ProjectsStore>()(
       }
       const projects = readPersistedProjects();
       const activeProjectId = readPersistedActiveProjectId();
+      const focusedProjectId = readPersistedFocusedProjectId();
       const nextActiveProjectId = projects.some((project) => project.id === activeProjectId)
         ? activeProjectId
         : projects[0]?.id ?? null;
-      set({ projects, activeProjectId: nextActiveProjectId });
+      const nextFocusedProjectId = projects.some((project) => project.id === focusedProjectId)
+        ? focusedProjectId
+        : null;
+      set({ projects, activeProjectId: nextActiveProjectId, focusedProjectId: nextFocusedProjectId });
     },
 
     synchronizeFromSettings: (settings: DesktopSettings) => {
@@ -849,20 +925,25 @@ export const useProjectsStore = create<ProjectsStore>()(
         : null;
 
       const current = get();
+      const currentFocused = current.focusedProjectId;
+      const nextFocused = currentFocused && incomingProjects.some((project) => project.id === currentFocused)
+        ? currentFocused
+        : null;
 
       // Race guard: settings load can return empty projects during app
       // rebuild/reinstall or an incomplete settings read. Don't clobber
       // a populated cache with empty — the sidebar would go blank and
       // localStorage would be overwritten, losing the list entirely.
       if (incomingProjects.length === 0 && current.projects.length > 0) {
-        if (incomingActive !== current.activeProjectId) {
+        if (incomingActive !== current.activeProjectId || nextFocused !== currentFocused) {
           // Active project may still be valid within the cached list.
           const activeExists = incomingActive
             ? current.projects.some((project) => project.id === incomingActive)
             : true;
           if (activeExists) {
-            set({ activeProjectId: incomingActive });
+            set({ activeProjectId: incomingActive, focusedProjectId: nextFocused });
             cacheProjects(current.projects, incomingActive);
+            persistFocusedProjectId(nextFocused);
           }
         }
         return;
@@ -870,13 +951,15 @@ export const useProjectsStore = create<ProjectsStore>()(
 
       const projectsChanged = JSON.stringify(current.projects) !== JSON.stringify(incomingProjects);
       const activeChanged = current.activeProjectId !== incomingActive;
+      const focusedChanged = currentFocused !== nextFocused;
 
-      if (!projectsChanged && !activeChanged) {
+      if (!projectsChanged && !activeChanged && !focusedChanged) {
         return;
       }
 
-      set({ projects: incomingProjects, activeProjectId: incomingActive });
+      set({ projects: incomingProjects, activeProjectId: incomingActive, focusedProjectId: nextFocused });
       cacheProjects(incomingProjects, incomingActive);
+      persistFocusedProjectId(nextFocused);
 
       if (incomingActive) {
         const activeProject = incomingProjects.find((project) => project.id === incomingActive);

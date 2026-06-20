@@ -40,6 +40,7 @@ type Props = {
   sectionsForRender: ProjectSection[];
   projectSections: ProjectSection[];
   activeProjectId: string | null;
+  focusedProjectId: string | null;
   showOnlyMainWorkspace: boolean;
   hasSessionSearchQuery: boolean;
   emptyState: React.ReactNode;
@@ -55,6 +56,7 @@ type Props = {
   alwaysShowActions: boolean;
   toggleProject: (id: string) => void;
   setActiveProjectIdOnly: (id: string) => void;
+  toggleFocusedProjectId: (id: string) => void;
   setActiveMainTab: (tab: MainTab) => void;
   setSessionSwitcherOpen: (open: boolean) => void;
   openNewSessionDraft: (options?: { directoryOverride?: string | null }) => void;
@@ -81,6 +83,11 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
+  const sectionsToRender = React.useMemo(() => {
+    if (!props.focusedProjectId) return props.sectionsForRender;
+    return props.sectionsForRender.filter((section) => section.project.id === props.focusedProjectId);
+  }, [props.sectionsForRender, props.focusedProjectId]);
+
   if (experimentalSidebar && !props.sharedSessionsOnly) {
     return <MinimalProjectsList {...props} />;
   }
@@ -98,7 +105,7 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
     return <ScrollableOverlay useScrollShadow scrollShadowSize={96} outerClassName="flex-1 min-h-0" className={cn('space-y-1 pb-1 pl-2.5 pr-2', props.mobileVariant ? '' : '')}>{props.topContent}{props.emptyState}</ScrollableOverlay>;
   }
 
-  if (props.sectionsForRender.length === 0) {
+  if (sectionsToRender.length === 0) {
     return <ScrollableOverlay useScrollShadow scrollShadowSize={96} outerClassName="flex-1 min-h-0" className={cn('space-y-1 pb-1 pl-2.5 pr-2', props.mobileVariant ? '' : '')}>{props.searchEmptyState}</ScrollableOverlay>;
   }
 
@@ -108,7 +115,7 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
       {props.showOnlyMainWorkspace ? (
         <div className="space-y-[0.6rem] py-1">
           {(() => {
-            const activeSection = props.sectionsForRender.find((section) => section.project.id === props.activeProjectId) ?? props.sectionsForRender[0];
+            const activeSection = sectionsToRender.find((section) => section.project.id === props.activeProjectId) ?? sectionsToRender[0];
             if (!activeSection) {
               return props.hasSessionSearchQuery ? props.searchEmptyState : props.emptyState;
             }
@@ -146,14 +153,14 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
               if (props.isInlineEditing) return;
               const { active, over } = event;
               if (!over || active.id === over.id) return;
-              const oldIndex = props.sectionsForRender.findIndex((section) => section.project.id === active.id);
-              const newIndex = props.sectionsForRender.findIndex((section) => section.project.id === over.id);
+              const oldIndex = sectionsToRender.findIndex((section) => section.project.id === active.id);
+              const newIndex = sectionsToRender.findIndex((section) => section.project.id === over.id);
               if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
               props.reorderProjects(oldIndex, newIndex);
             }}
           >
-            <SortableContext items={props.sectionsForRender.map((section) => section.project.id)} strategy={verticalListSortingStrategy}>
-              {props.sectionsForRender.map((section) => {
+            <SortableContext items={sectionsToRender.map((section) => section.project.id)} strategy={verticalListSortingStrategy}>
+              {sectionsToRender.map((section) => {
                 const project = section.project;
                 const projectKey = project.id;
                 const projectLabel = formatProjectLabel(
@@ -164,6 +171,7 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
                 const projectDescription = formatPathForDisplay(project.normalizedPath, props.homeDirectory);
                 const isCollapsed = props.collapsedProjects.has(projectKey);
                 const isActiveProject = projectKey === props.activeProjectId;
+                const isFocusedProject = projectKey === props.focusedProjectId;
                 const isRepo = props.projectRepoStatus.get(projectKey);
                 const orderedGroups = props.getOrderedGroups(projectKey, section.groups);
                 const rootGroup = orderedGroups.find((group) => group.isMain) ?? null;
@@ -183,6 +191,7 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
                     projectIconBackground={project.iconBackground}
                     isCollapsed={isCollapsed}
                     isActiveProject={isActiveProject}
+                    isFocusedProject={isFocusedProject}
                     isRepo={Boolean(isRepo)}
                     isDesktopShell={props.isDesktopShellRuntime}
                     isStuck={props.stuckProjectHeaders.has(projectKey)}
@@ -201,6 +210,7 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
                       props.setActiveMainTab('chat');
                       props.openNewWorktreeDialog();
                     }}
+                    onToggleFocus={() => props.toggleFocusedProjectId(projectKey)}
                     onRenameStart={() => props.openProjectEditDialog(projectKey)}
                     onClose={() => props.removeProject(projectKey)}
                     sentinelRef={(el) => { props.projectHeaderSentinelRefs.current.set(projectKey, el); }}

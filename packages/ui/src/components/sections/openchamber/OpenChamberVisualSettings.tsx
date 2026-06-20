@@ -234,7 +234,7 @@ const normalizeUserMessageRenderingMode = (mode: unknown): 'markdown' | 'plain' 
     return mode === 'markdown' ? 'markdown' : 'plain';
 };
 
-export type VisibleSetting = 'theme' | 'pwaInstallName' | 'pwaOrientation' | 'mobileKeyboardMode' | 'timeFormat' | 'weekStart' | 'fontSize' | 'terminalFontSize' | 'spacing' | 'inputBarOffset' | 'mermaidRendering' | 'userMessageRendering' | 'chatRenderMode' | 'messageTransport' | 'activityRenderMode' |   'collapsibleUserMessages' | 'stickyUserHeader' | 'experimentalSidebar' | 'wideChatLayout' | 'splitAssistantMessageActions' | 'diffLayout' | 'mobileStatusBar' | 'dotfiles' | 'fileViewerPreview' | 'reasoning' | 'showToolFileIcons' | 'showTurnChangedFiles' | 'expandedTools' | 'queueMode' | 'terminalQuickKeys' | 'fileEditorKeymap' | 'persistDraft' | 'inputSpellcheck' | 'reportUsage' | 'expandedEditorToolbar';
+export type VisibleSetting = 'theme' | 'pwaInstallName' | 'pwaOrientation' | 'mobileKeyboardMode' | 'timeFormat' | 'weekStart' | 'fontSize' | 'terminalFontSize' | 'spacing' | 'inputBarOffset' | 'mermaidRendering' | 'userMessageRendering' | 'chatRenderMode' | 'messageTransport' | 'activityRenderMode' |   'collapsibleUserMessages' | 'stickyUserHeader' | 'experimentalSidebar' | 'experimentalChatUI' | 'wideChatLayout' | 'splitAssistantMessageActions' | 'diffLayout' | 'mobileStatusBar' | 'dotfiles' | 'fileViewerPreview' | 'reasoning' | 'showToolFileIcons' | 'showTurnChangedFiles' | 'expandedTools' | 'queueMode' | 'terminalQuickKeys' | 'fileEditorKeymap' | 'persistDraft' | 'inputSpellcheck' | 'reportUsage' | 'expandedEditorToolbar';
 
 interface OpenChamberVisualSettingsProps {
     /** Which settings to show. If undefined, shows all. */
@@ -262,6 +262,8 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
     const setStickyUserHeader = useUIStore(state => state.setStickyUserHeader);
     const experimentalSidebar = useUIStore(state => state.experimentalSidebar);
     const setExperimentalSidebar = useUIStore(state => state.setExperimentalSidebar);
+    const experimentalChatUI = useUIStore(state => state.experimentalChatUI);
+    const setExperimentalChatUI = useUIStore(state => state.setExperimentalChatUI);
     const expandedEditorToolbar = useUIStore(state => state.expandedEditorToolbar);
     const setExpandedEditorToolbar = useUIStore(state => state.setExpandedEditorToolbar);
     const wideChatLayoutEnabled = useUIStore(state => state.wideChatLayoutEnabled);
@@ -409,6 +411,11 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
         void updateDesktopSettings({ experimentalSidebar: enabled });
     }, [setExperimentalSidebar]);
 
+    const handleExperimentalChatUIChange = React.useCallback((enabled: boolean) => {
+        setExperimentalChatUI(enabled);
+        void updateDesktopSettings({ experimentalChatUI: enabled });
+    }, [setExperimentalChatUI]);
+
     const handleExpandedEditorToolbarChange = React.useCallback((enabled: boolean) => {
         setExpandedEditorToolbar(enabled);
         void updateDesktopSettings({ expandedEditorToolbar: enabled });
@@ -540,7 +547,6 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
         || (shouldShow('activityRenderMode') && chatRenderMode === 'sorted')
         || shouldShow('collapsibleUserMessages')
         || shouldShow('stickyUserHeader')
-        || shouldShow('experimentalSidebar')
         || shouldShow('wideChatLayout')
         || shouldShow('splitAssistantMessageActions')
         || shouldShow('diffLayout')
@@ -813,7 +819,7 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
                                     </Tooltip>
                                 </div>
 
-                                {macVibrancySupported && (
+                                        {macVibrancySupported && (
                                     <div data-settings-item="appearance.window-transparency" className="flex flex-col gap-1.5 border-t border-border/40 pt-3">
                                         <div
                                             className="group flex cursor-pointer items-start gap-2 py-0.5"
@@ -858,6 +864,95 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
                                                         ? t('settings.openchamber.visual.actions.restarting')
                                                         : t('settings.openchamber.visual.actions.saveAndRestart')}
                                                 </Button>
+                                            </div>
+                                        )}
+
+                                        {shouldShow('experimentalSidebar') && (
+                                            <div
+                                                data-settings-item="chat.experimental-sidebar"
+                                                className="group flex cursor-pointer items-start gap-2 py-0.5"
+                                                role="button"
+                                                tabIndex={0}
+                                                aria-pressed={experimentalSidebar}
+                                                onClick={() => handleExperimentalSidebarChange(!experimentalSidebar)}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === ' ' || event.key === 'Enter') {
+                                                        event.preventDefault();
+                                                        handleExperimentalSidebarChange(!experimentalSidebar);
+                                                    }
+                                                }}
+                                            >
+                                                <Checkbox
+                                                    checked={experimentalSidebar}
+                                                    onChange={handleExperimentalSidebarChange}
+                                                    ariaLabel={t('settings.openchamber.visual.field.experimentalSidebarAria')}
+                                                />
+                                                <div className="flex min-w-0 flex-col">
+                                                    <div className="flex min-w-0 items-center gap-1.5">
+                                                        <span className="typography-ui-label text-foreground">
+                                                            {t('settings.openchamber.visual.field.experimentalSidebar')}
+                                                        </span>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <span
+                                                                    className="shrink-0 typography-micro px-1 rounded leading-none pb-px cursor-help text-[#38BDF8] bg-[#38BDF8]/10"
+                                                                >
+                                                                    {t('settings.openchamber.visual.field.experimentalBadge')}
+                                                                </span>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent sideOffset={8} className="max-w-xs">
+                                                                <p>{t('settings.openchamber.visual.field.experimentalSidebarTooltip')}</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </div>
+                                                    <span className="typography-meta text-muted-foreground">
+                                                        {t('settings.openchamber.visual.field.experimentalSidebarHint')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {shouldShow('experimentalChatUI') && (
+                                            <div
+                                                data-settings-item="chat.experimental-chat-ui"
+                                                className="group flex cursor-pointer items-start gap-2 py-0.5"
+                                                role="button"
+                                                tabIndex={0}
+                                                aria-pressed={experimentalChatUI}
+                                                onClick={() => handleExperimentalChatUIChange(!experimentalChatUI)}
+                                                onKeyDown={(event) => {
+                                                    if (event.key === ' ' || event.key === 'Enter') {
+                                                        event.preventDefault();
+                                                        handleExperimentalChatUIChange(!experimentalChatUI);
+                                                    }
+                                                }}
+                                            >
+                                                <Checkbox
+                                                    checked={experimentalChatUI}
+                                                    onChange={handleExperimentalChatUIChange}
+                                                    ariaLabel={t('settings.openchamber.visual.field.experimentalChatUIAria')}
+                                                />
+                                                <div className="flex min-w-0 flex-col">
+                                                    <div className="flex min-w-0 items-center gap-1.5">
+                                                        <span className="typography-ui-label text-foreground">
+                                                            {t('settings.openchamber.visual.field.experimentalChatUI')}
+                                                        </span>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <span
+                                                                    className="shrink-0 typography-micro px-1 rounded leading-none pb-px cursor-help text-[#38BDF8] bg-[#38BDF8]/10"
+                                                                >
+                                                                    {t('settings.openchamber.visual.field.experimentalBadge')}
+                                                                </span>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent sideOffset={8} className="max-w-xs">
+                                                                <p>{t('settings.openchamber.visual.field.experimentalChatUITooltip')}</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </div>
+                                                    <span className="typography-meta text-muted-foreground">
+                                                        {t('settings.openchamber.visual.field.experimentalChatUIHint')}
+                                                    </span>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -1786,40 +1881,6 @@ export const OpenChamberVisualSettings: React.FC<OpenChamberVisualSettingsProps>
                                                 ariaLabel={t('settings.openchamber.visual.field.stickyUserHeaderAria')}
                                             />
                                             <span className="typography-ui-label text-foreground">{t('settings.openchamber.visual.field.stickyUserHeader')}</span>
-                                        </div>
-                                    )}
-
-                                    {shouldShow('experimentalSidebar') && (
-                                        <div
-                                            data-settings-item="chat.experimental-sidebar"
-                                            className="group flex cursor-pointer items-center gap-2 py-0.5"
-                                            role="button"
-                                            tabIndex={0}
-                                            aria-pressed={experimentalSidebar}
-                                            onClick={() => handleExperimentalSidebarChange(!experimentalSidebar)}
-                                            onKeyDown={(event) => {
-                                                if (event.key === ' ' || event.key === 'Enter') {
-                                                    event.preventDefault();
-                                                    handleExperimentalSidebarChange(!experimentalSidebar);
-                                                }
-                                            }}
-                                        >
-                                            <Checkbox
-                                                checked={experimentalSidebar}
-                                                onChange={handleExperimentalSidebarChange}
-                                                ariaLabel={t('settings.openchamber.visual.field.experimentalSidebarAria')}
-                                            />
-                                            <div className="flex min-w-0 items-center gap-1.5">
-                                                <span className="typography-ui-label text-foreground">{t('settings.openchamber.visual.field.experimentalSidebar')}</span>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Icon name="information" className="h-3.5 w-3.5 cursor-help text-muted-foreground/60" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent sideOffset={8} className="max-w-xs">
-                                                        <p>{t('settings.openchamber.visual.field.experimentalSidebarTooltip')}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </div>
                                         </div>
                                     )}
 

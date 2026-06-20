@@ -174,6 +174,13 @@ export const SETTINGS_SEARCH_ITEMS: readonly SettingsSearchItem[] = [
     keywords: ['sidebar', 'projects', 'experimental', 'redesign', 'minimal'],
   },
   {
+    id: 'chat.experimental-chat-ui',
+    page: 'chat',
+    titleKey: 'settings.openchamber.visual.field.experimentalChatUI',
+    descriptionKey: 'settings.openchamber.visual.field.experimentalChatUITooltip',
+    keywords: ['chat', 'input', 'composer', 'experimental', 'redesign', 'floating', 'minimal'],
+  },
+  {
     id: 'chat.collapsible-user-messages',
     page: 'chat',
     titleKey: 'settings.openchamber.visual.field.collapsibleUserMessages',

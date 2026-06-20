@@ -626,6 +626,7 @@ interface UIStore {
   collapsibleUserMessages: boolean;
   stickyUserHeader: boolean;
   experimentalSidebar: boolean;
+  experimentalChatUI: boolean;
   expandedEditorToolbar: boolean;
   showSplitAssistantMessageActions: boolean;
   isMobileSessionStatusBarCollapsed: boolean;
@@ -772,6 +773,7 @@ interface UIStore {
   setCollapsibleUserMessages: (value: boolean) => void;
   setStickyUserHeader: (value: boolean) => void;
   setExperimentalSidebar: (value: boolean) => void;
+  setExperimentalChatUI: (value: boolean) => void;
   setExpandedEditorToolbar: (value: boolean) => void;
   setShowSplitAssistantMessageActions: (value: boolean) => void;
   setIsMobileSessionStatusBarCollapsed: (value: boolean) => void;
@@ -911,6 +913,7 @@ export const useUIStore = create<UIStore>()(
   collapsibleUserMessages: true,
   stickyUserHeader: false,
   experimentalSidebar: false,
+  experimentalChatUI: false,
   expandedEditorToolbar: false,
         showSplitAssistantMessageActions: false,
         isMobileSessionStatusBarCollapsed: false,
@@ -2029,6 +2032,9 @@ export const useUIStore = create<UIStore>()(
         setExperimentalSidebar: (value) => {
           set({ experimentalSidebar: value });
         },
+        setExperimentalChatUI: (value) => {
+          set({ experimentalChatUI: value });
+        },
         setExpandedEditorToolbar: (value: boolean) => {
           set({ expandedEditorToolbar: value });
         },
@@ -2267,6 +2273,7 @@ export const useUIStore = create<UIStore>()(
           collapsibleUserMessages: state.collapsibleUserMessages,
           stickyUserHeader: state.stickyUserHeader,
           experimentalSidebar: state.experimentalSidebar,
+          experimentalChatUI: state.experimentalChatUI,
           expandedEditorToolbar: state.expandedEditorToolbar,
           showSplitAssistantMessageActions: state.showSplitAssistantMessageActions,
           isMobileSessionStatusBarCollapsed: state.isMobileSessionStatusBarCollapsed,

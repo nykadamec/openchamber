@@ -18,6 +18,7 @@ import { useI18n } from '@/lib/i18n';
 
 export const PendingChangesBar: React.FC = React.memo(() => {
     const { t } = useI18n();
+    const experimentalChatUI = useUIStore((state) => state.experimentalChatUI);
     const [isExpanded, setIsExpanded] = React.useState(false);
     const popoverRef = React.useRef<HTMLDivElement>(null);
     const currentDirectory = useEffectiveDirectory() ?? null;
@@ -104,19 +105,25 @@ export const PendingChangesBar: React.FC = React.memo(() => {
                 type="button"
                 className={cn(
                     "flex min-w-0 max-w-full items-center gap-1.5 text-left",
-                    "rounded-full px-2.5 py-1",
-                    "bg-[var(--surface-floating)] backdrop-blur-md",
-                    "ring-1 ring-inset ring-border/20",
-                    "shadow-[var(--shadow-floating-sm)]",
-                    "hover:bg-[var(--interactive-hover)]/30",
-                    "transition-colors duration-150"
+                    experimentalChatUI && [
+                        "rounded-full px-2.5 py-1",
+                        "bg-[var(--surface-floating)] backdrop-blur-md",
+                        "ring-1 ring-inset ring-border/20",
+                        "shadow-[var(--shadow-floating-sm)]",
+                        "hover:bg-[var(--interactive-hover)]/30",
+                        "transition-colors duration-150"
+                    ],
+                    !experimentalChatUI && "text-muted-foreground"
                 )}
                 onClick={() => setIsExpanded((value) => !value)}
                 aria-expanded={isExpanded}
             >
                 <Icon name="file-edit" className="h-3.5 w-3.5 flex-shrink-0 text-[var(--status-warning)]" />
                 <span className="min-w-0 typography-ui-label text-foreground flex-shrink-0">{labelHead}</span>
-                <span className="status-row__changed-label min-w-0 typography-ui-label text-muted-foreground truncate">
+                <span className={cn(
+                    "status-row__changed-label min-w-0 typography-ui-label truncate",
+                    experimentalChatUI ? 'text-muted-foreground' : 'text-foreground'
+                )}>
                     {t('chat.pendingChanges.changedInWorkspace')}
                 </span>
                 <span className="text-[0.75rem] tabular-nums inline-flex items-baseline gap-1 flex-shrink-0">
@@ -124,9 +131,9 @@ export const PendingChangesBar: React.FC = React.memo(() => {
                     {totalRemoved > 0 ? <span style={{ color: 'var(--status-error)' }}>-{totalRemoved}</span> : null}
                 </span>
                 {isExpanded ? (
-                    <Icon name="arrow-up-s" className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                    <Icon name="arrow-up-s" className={cn("h-3.5 w-3.5 flex-shrink-0", experimentalChatUI && "text-muted-foreground")} />
                 ) : (
-                    <Icon name="arrow-down-s" className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                    <Icon name="arrow-down-s" className={cn("h-3.5 w-3.5 flex-shrink-0", experimentalChatUI && "text-muted-foreground")} />
                 )}
             </button>
             {isExpanded && (

@@ -283,12 +283,26 @@ interface ModelControlsProps {
     className?: string;
     mobilePanel?: MobileControlsPanel;
     onMobilePanelChange?: (panel: MobileControlsPanel) => void;
+    experimental?: boolean;
+    canSend?: boolean;
+    canAbort?: boolean;
+    sessionId?: string | null;
+    newSessionDraftOpen?: boolean;
+    onPrimaryAction?: () => void;
+    onAbort?: () => void;
 }
 
 export const ModelControls: React.FC<ModelControlsProps> = ({
     className,
     mobilePanel,
     onMobilePanelChange,
+    experimental = false,
+    canSend = false,
+    canAbort = false,
+    sessionId = null,
+    newSessionDraftOpen = false,
+    onPrimaryAction,
+    onAbort,
 }) => {
     const { t } = useI18n();
     const { isReady, isUnavailable } = useOpenCodeReadiness();
@@ -2271,7 +2285,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                             <DropdownMenuTrigger asChild>
                                 <div
                                     className={cn(
-                                        'model-controls__model-trigger flex items-center gap-1.5 cursor-pointer hover:bg-transparent min-w-0',
+                                        'model-controls__model-trigger flex items-center gap-1.5 cursor-pointer hover:bg-transparent hover:opacity-70 min-w-0',
                                         buttonHeight
                                     )}
                                 >
@@ -2597,7 +2611,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                         <DropdownMenuTrigger asChild>
                             <div
                                 className={cn(
-                                    'model-controls__variant-trigger flex items-center gap-1.5 transition-colors cursor-pointer hover:bg-transparent min-w-0',
+                                    'model-controls__variant-trigger flex items-center gap-1.5 transition-colors cursor-pointer hover:bg-transparent hover:opacity-70 min-w-0',
                                     buttonHeight,
                                 )}
                             >
@@ -2659,7 +2673,7 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                             <TooltipTrigger asChild>
                                 <DropdownMenuTrigger asChild>
                                     <div className={cn(
-                                        'flex items-center gap-1.5 transition-colors cursor-pointer hover:bg-transparent min-w-0',
+                                        'flex items-center gap-1.5 transition-colors cursor-pointer hover:bg-transparent hover:opacity-70 min-w-0',
                                         buttonHeight
                                     )}>
                                         {!isReady ? (
@@ -2843,23 +2857,60 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
         className,
     );
 
-    const renderDesktopPill = () => {
-        if (isCompact) return null;
+    const renderExperimentalCapsule = () => {
+        if (!experimental || isCompact) return null;
+
+        const sendEnabled = canSend && (sessionId || newSessionDraftOpen);
+
+        const capsuleButtonClass = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-[var(--interactive-hover)]/40 text-foreground/80 hover:text-foreground transition-colors duration-150 min-w-0';
+        const dividerClass = 'h-3.5 w-px bg-[var(--interactive-border)]/30 flex-shrink-0 my-auto';
+
         return (
             <div
                 className={cn(
                     'flex items-center min-w-0',
                     'bg-[var(--interactive-hover)]/30',
                     'hover:bg-[var(--interactive-hover)]/50',
-                    'rounded-full',
-                    'pl-1.5 pr-1',
+                    'border border-border/20',
+                    'rounded-xl',
+                    'p-0.5 gap-0.5',
                     buttonHeight,
                     inlineGapClass
                 )}
             >
                 {renderVariantSelector()}
+                {hasVariants && <div className={dividerClass} />}
                 {renderModelSelector()}
+                <div className={dividerClass} />
                 {renderAgentSelector()}
+                <div className={dividerClass} />
+                {canAbort ? (
+                    <button
+                        type="button"
+                        onClick={onAbort}
+                        className={cn(capsuleButtonClass, 'text-[var(--status-error)] hover:bg-[var(--status-error)]/10')}
+                        aria-label={t('chat.chatInput.actions.stopGeneratingAria')}
+                        title={t('chat.chatInput.actions.stopGeneratingAria')}
+                    >
+                        <Icon name="stop" className={controlIconSize} />
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        disabled={!sendEnabled}
+                        onClick={() => sendEnabled && onPrimaryAction?.()}
+                        className={cn(
+                            capsuleButtonClass,
+                            sendEnabled
+                                ? 'text-[var(--primary-base)] hover:text-[var(--primary-hover)] hover:bg-[var(--primary-base)]/10'
+                                : 'opacity-40 cursor-not-allowed'
+                        )}
+                        aria-label={t('chat.chatInput.actions.sendMessageAria')}
+                        title={t('chat.chatInput.actions.sendMessageAria')}
+                    >
+                        <Icon name="send-plane-2" className={controlIconSize} />
+                    </button>
+                )}
             </div>
         );
     };
@@ -2874,14 +2925,14 @@ export const ModelControls: React.FC<ModelControlsProps> = ({
                         isMobile && 'overflow-hidden'
                     )}
                 >
-                    {isCompact ? (
+                    {experimental && !isCompact ? (
+                        renderExperimentalCapsule()
+                    ) : (
                         <>
                             {renderVariantSelector()}
                             {renderModelSelector()}
                             {renderAgentSelector()}
                         </>
-                    ) : (
-                        renderDesktopPill()
                     )}
                 </div>
             </div>

@@ -344,7 +344,18 @@ const getProjectIconColor = (projectColor?: string | null): string | undefined =
     return PROJECT_COLOR_MAP[projectColor] ?? undefined;
 };
 
-const MemoModelControls = React.memo(ModelControls);
+const MemoModelControls = React.memo(ModelControls, (prev, next) => (
+    prev.className === next.className
+    && prev.experimental === next.experimental
+    && prev.canSend === next.canSend
+    && prev.canAbort === next.canAbort
+    && prev.sessionId === next.sessionId
+    && prev.newSessionDraftOpen === next.newSessionDraftOpen
+    && prev.onPrimaryAction === next.onPrimaryAction
+    && prev.onAbort === next.onAbort
+    && prev.mobilePanel === next.mobilePanel
+    && prev.onMobilePanelChange === next.onMobilePanelChange
+));
 const MemoBrowserVoiceButton = React.memo(BrowserVoiceButton);
 const MemoMobileAgentButton = React.memo(MobileAgentButton);
 const MemoMobileModelButton = React.memo(MobileModelButton);
@@ -631,6 +642,7 @@ const PermissionAutoAcceptButton = React.memo(function PermissionAutoAcceptButto
             onClick={handlePermissionAutoAcceptToggle}
             className={cn(
                 footerIconButtonClass,
+                'rounded-md hover:bg-transparent',
                 !permissionScopeSessionId && 'opacity-30',
             )}
             onMouseDown={(event) => {
@@ -688,9 +700,10 @@ const FocusModeButton = React.memo(function FocusModeButton(props: FocusModeButt
                     type="button"
                     className={cn(
                         footerIconButtonClass,
+                        'rounded-md',
                         isExpandedInput
-                            ? 'text-primary bg-[var(--interactive-hover)]/30'
-                            : 'text-foreground'
+                            ? 'text-primary'
+                            : 'text-foreground hover:bg-[var(--interactive-hover)]/40'
                     )}
                     onMouseDown={(event) => {
                         event.preventDefault();
@@ -760,8 +773,9 @@ const ComposerActionButtons = React.memo(function ComposerActionButtons(props: C
             }}
             className={cn(
                 footerIconButtonClass,
-                'bg-[var(--primary-base)] text-[var(--primary-foreground)] hover:opacity-90 hover:bg-[var(--primary-base)] active:opacity-80',
-                (!canSend || (!currentSessionId && !newSessionDraftOpen)) && 'opacity-40'
+                canSend && (currentSessionId || newSessionDraftOpen)
+                    ? 'text-primary hover:text-primary'
+                    : 'opacity-30'
             )}
             aria-label={t('chat.chatInput.actions.sendMessageAria')}
         >
@@ -800,7 +814,7 @@ const ComposerActionButtons = React.memo(function ComposerActionButtons(props: C
                 onClick={onAbort}
                 className={cn(
                     footerIconButtonClass,
-                    'text-[var(--status-error)] hover:bg-[var(--status-error)]/10'
+                    'text-[var(--status-error)] hover:text-[var(--status-error)]'
                 )}
                 aria-label={t('chat.chatInput.actions.stopGeneratingAria')}
             >
@@ -1031,6 +1045,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
     const persistChatDraft = useUIStore((state) => state.persistChatDraft);
     const inputSpellcheckEnabled = useUIStore((state) => state.inputSpellcheckEnabled);
     const isExpandedInput = useUIStore((state) => state.isExpandedInput);
+    const experimentalChatUI = useUIStore((state) => state.experimentalChatUI);
     const setExpandedInput = useUIStore((state) => state.setExpandedInput);
     const setTimelineDialogOpen = useUIStore((state) => state.setTimelineDialogOpen);
     const { git: runtimeGit, vscode: vscodeApi } = useRuntimeAPIs();
@@ -1110,7 +1125,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
     }, [currentSessionId, currentDirectory, t]);
 
     const isDesktopExpanded = isExpandedInput && !isMobile;
-    const chatInputRadius = 'var(--radius-2xl)';
+    const chatInputRadius = 'var(--radius-xl)';
     const useCompactChatPlaceholder = isMobile || isNarrowComposer;
 
     React.useEffect(() => {
@@ -3839,19 +3854,23 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
         });
     }, [draftBranchItems, newSessionDraft?.bootstrapPendingDirectory, newSessionDraft?.pendingWorktreeRequestId, newSessionDraft?.preserveDirectoryOverride, selectedDraftDirectory, selectedDraftProject, setNewSessionDraftTarget, showDraftTargetSelectors]);
 
-    const footerPaddingClass = isMobile ? 'px-2 py-2' : (isVSCode ? 'px-2.5 py-1.5' : 'px-3 py-2');
-    const buttonSizeClass = isMobile ? 'h-8 w-8' : (isVSCode ? 'h-6 w-6' : 'h-7 w-7');
-    const sendIconSizeClass = isMobile ? 'h-4 w-4' : (isVSCode ? 'h-4 w-4' : 'h-4 w-4');
-    const stopIconSizeClass = isMobile ? 'h-5 w-5' : (isVSCode ? 'h-4 w-4' : 'h-[18px] w-[18px]');
+    const footerPaddingClass = experimentalChatUI
+        ? (isMobile ? 'px-2 py-2' : (isVSCode ? 'px-2.5 py-1.5' : 'px-3 py-2'))
+        : (isMobile ? 'px-1.5 py-1.5' : (isVSCode ? 'px-1.5 py-1' : 'px-2.5 py-1.5'));
+    const buttonSizeClass = experimentalChatUI
+        ? (isMobile ? 'h-8 w-8' : (isVSCode ? 'h-6 w-6' : 'h-7 w-7'))
+        : (isMobile ? 'h-8 w-8' : (isVSCode ? 'h-5 w-5' : 'h-6 w-6'));
+    const sendIconSizeClass = isMobile ? 'h-4 w-4' : (isVSCode ? 'h-3.5 w-3.5' : 'h-4 w-4');
+    const stopIconSizeClass = isMobile ? 'h-6 w-6' : (isVSCode ? 'h-4 w-4' : 'h-5 w-5');
     const iconSizeClass = isMobile ? 'h-[18px] w-[18px]' : (isVSCode ? 'h-4 w-4' : 'h-[18px] w-[18px]');
 
-    const iconButtonBaseClass = 'flex cursor-pointer items-center justify-center text-foreground outline-none focus:outline-none flex-shrink-0 disabled:cursor-not-allowed transition-colors duration-150';
-    const footerIconButtonClass = cn(
-        iconButtonBaseClass,
-        buttonSizeClass,
-        'rounded-full hover:bg-[var(--interactive-hover)]/40 active:bg-[var(--interactive-active)]/50'
-    );
-    const footerGapClass = 'gap-x-1 gap-y-0';
+    const iconButtonBaseClass = experimentalChatUI
+        ? 'flex cursor-pointer items-center justify-center text-foreground outline-none focus:outline-none flex-shrink-0 disabled:cursor-not-allowed transition-colors duration-150'
+        : 'flex cursor-pointer items-center justify-center text-foreground transition-none outline-none focus:outline-none flex-shrink-0 disabled:cursor-not-allowed';
+    const footerIconButtonClass = experimentalChatUI
+        ? cn(iconButtonBaseClass, buttonSizeClass, 'rounded-full hover:bg-[var(--interactive-hover)]/40 active:bg-[var(--interactive-active)]/50')
+        : cn(iconButtonBaseClass, buttonSizeClass);
+    const footerGapClass = experimentalChatUI ? 'gap-x-1 gap-y-0' : 'gap-x-1.5 gap-y-0';
     const permissionScopeSessionId = currentSessionId ?? currentManagementSessionId;
     const permissionAutoAcceptEnabled = usePermissionStore((state) => {
         if (!permissionScopeSessionId) {
@@ -4106,7 +4125,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                     sessionId={currentSessionId}
                     directory={currentSessionDirectoryForSync ?? currentDirectory}
                 />
-                <div className="mb-2">
+                <div className={experimentalChatUI ? 'mb-2' : undefined}>
                     <MemoStatusRow
                         showAbortStatus={showAbortStatus}
                         showAssistantStatus={false}
@@ -4192,21 +4211,32 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                     className={cn(
                         "flex flex-col relative overflow-visible",
                         isDesktopExpanded && 'flex-1 min-h-0',
-                        "bg-[var(--surface-floating)]",
-                        "backdrop-blur-md",
-                        "ring-1 ring-inset ring-border/20",
-                        "shadow-[var(--shadow-floating-sm)]",
-                        "hover:shadow-[var(--shadow-floating)]",
-                        "focus-within:shadow-[var(--shadow-floating)]",
-                        "focus-within:ring-2",
-                        inputMode === 'shell'
-                            ? 'focus-within:ring-[var(--status-info)]/40'
-                            : 'focus-within:ring-[var(--interactive-focus-ring)]/40',
-                        "transition-shadow duration-250 ease-out",
+                        experimentalChatUI
+                            ? [
+                                "bg-[var(--surface-floating)]",
+                                "backdrop-blur-md",
+                                "ring-1 ring-inset ring-border/20",
+                                "shadow-[var(--shadow-floating-sm)]",
+                                "hover:shadow-[var(--shadow-floating)]",
+                                "focus-within:shadow-[var(--shadow-floating)]",
+                                "focus-within:ring-2",
+                                inputMode === 'shell'
+                                    ? 'focus-within:ring-[var(--status-info)]/40'
+                                    : 'focus-within:ring-[var(--interactive-focus-ring)]/40',
+                                "transition-shadow duration-250 ease-out",
+                            ]
+                            : [
+                                "border border-border/80",
+                                "focus-within:ring-1",
+                                inputMode === 'shell'
+                                    ? 'focus-within:ring-[var(--status-info)]'
+                                    : 'focus-within:ring-primary/50',
+                            ],
                         isDragging && "ring-2 ring-primary ring-offset-2"
                     )}
                     style={{
-                        borderRadius: chatInputRadius,
+                        borderRadius: experimentalChatUI ? 'var(--radius-2xl)' : chatInputRadius,
+                        backgroundColor: experimentalChatUI ? undefined : currentTheme?.colors?.surface?.subtle,
                     }}
                     ref={dropZoneRef}
                     onDropCapture={handleDropCapture}
@@ -4217,7 +4247,7 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                     onDragEnd={handleDragEnd}
                 >
                     {isDragging && (
-                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/90 rounded-[var(--radius-2xl)]">
+                        <div className={cn("absolute inset-0 z-50 flex items-center justify-center bg-background/90", experimentalChatUI ? 'rounded-[var(--radius-2xl)]' : 'rounded-xl')}>
                             <div className="text-center">
                                 <div className="inline-flex justify-center">
                                     <button
@@ -4384,12 +4414,13 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                                 fillContainer={isDesktopExpanded}
                                 outerClassName={cn('ring-0 bg-transparent shadow-none hover:bg-transparent focus-within:ring-0', isDesktopExpanded && 'flex-1 min-h-0')}
                                 className={cn(
-                                    'min-h-[60px] resize-none border-0 px-4 rounded-b-none appearance-none hover:border-transparent bg-transparent relative z-10',
+                                    experimentalChatUI ? 'min-h-[60px] px-4' : 'min-h-[52px] px-3',
+                                    'resize-none border-0 rounded-b-none appearance-none hover:border-transparent bg-transparent relative z-10',
                                     isDesktopExpanded
-                                        ? 'h-full min-h-0 py-5'
+                                        ? 'h-full min-h-0'
                                         : isMobile
-                                            ? 'py-3'
-                                            : 'pt-5 pb-3',
+                                            ? (experimentalChatUI ? 'py-3' : 'py-2.5')
+                                            : (experimentalChatUI ? 'pt-5 pb-3' : 'pt-4 pb-2'),
                                     inputMode === 'shell' && 'font-mono',
                                     highlightedComposerContent && 'text-transparent caret-[var(--surface-foreground)]',
                                 )}
@@ -4506,23 +4537,34 @@ const ChatInputComponent: React.FC<ChatInputProps> = ({ onOpenSettings, scrollTo
                                         withTooltip
                                     />
                                 </div>
-                                <div className={cn('flex items-center flex-1 justify-end', footerGapClass, 'md:gap-x-3')}>
-                                    <MemoModelControls className={cn('flex-1 min-w-0 justify-end')} />
-                                    <MemoBrowserVoiceButton />
-                                    <ComposerActionButtons
-                                        isMobile={isMobile}
-                                        footerIconButtonClass={footerIconButtonClass}
-                                        sendIconSizeClass={sendIconSizeClass}
-                                        stopIconSizeClass={stopIconSizeClass}
+                                <div className={cn('flex items-center flex-1 justify-end', footerGapClass, experimentalChatUI ? 'gap-x-2' : 'md:gap-x-3')}>
+                                    <MemoModelControls
+                                        className={cn('flex-1 min-w-0 justify-end')}
+                                        experimental={experimentalChatUI}
                                         canSend={canSend}
                                         canAbort={canAbort}
-                                        hasContent={!!hasContent}
-                                        currentSessionId={currentSessionId}
+                                        sessionId={currentSessionId}
                                         newSessionDraftOpen={newSessionDraftOpen}
                                         onPrimaryAction={handlePrimaryAction}
-                                        onQueueMessage={handleQueueMessage}
                                         onAbort={handleAbort}
                                     />
+                                    {!experimentalChatUI && <MemoBrowserVoiceButton />}
+                                    {!experimentalChatUI && (
+                                        <ComposerActionButtons
+                                            isMobile={isMobile}
+                                            footerIconButtonClass={footerIconButtonClass}
+                                            sendIconSizeClass={sendIconSizeClass}
+                                            stopIconSizeClass={stopIconSizeClass}
+                                            canSend={canSend}
+                                            canAbort={canAbort}
+                                            hasContent={!!hasContent}
+                                            currentSessionId={currentSessionId}
+                                            newSessionDraftOpen={newSessionDraftOpen}
+                                            onPrimaryAction={handlePrimaryAction}
+                                            onQueueMessage={handleQueueMessage}
+                                            onAbort={handleAbort}
+                                        />
+                                    )}
                                 </div>
                             </>
                         )}

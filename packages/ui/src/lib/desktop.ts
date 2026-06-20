@@ -146,6 +146,7 @@ export type DesktopSettings = {
   collapsibleUserMessages?: boolean;
   stickyUserHeader?: boolean;
   experimentalSidebar?: boolean;
+  experimentalChatUI?: boolean;
   expandedEditorToolbar?: boolean;
   wideChatLayoutEnabled?: boolean;
   showSplitAssistantMessageActions?: boolean;

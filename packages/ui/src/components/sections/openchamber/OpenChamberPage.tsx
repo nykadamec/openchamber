@@ -138,6 +138,7 @@ const VisualSectionContent: React.FC = () => {
         'inputBarOffset',
         'expandedEditorToolbar',
         'experimentalSidebar',
+        'experimentalChatUI',
         ...(!isVSCode ? ['terminalQuickKeys' as const] : []),
         'reportUsage',
     ]} />;
