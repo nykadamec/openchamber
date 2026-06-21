@@ -190,7 +190,10 @@ const shouldSkipApiCompression = () => {
   if (isEnvFlagEnabled(process.env.OPENCHAMBER_SKIP_API_COMPRESSION)) return true;
   if (isEnvFlagEnabled(process.env.OPENCHAMBER_COMPRESS_API)) return false;
   if (isEnvFlagDisabled(process.env.OPENCHAMBER_COMPRESS_API)) return true;
-  return process.env.OPENCHAMBER_RUNTIME === 'desktop';
+  // Default: enable compression for all runtimes except desktop (where it may cause issues)
+  // Can be overridden with OPENCHAMBER_COMPRESS_API_DESKTOP=true for desktop
+  return process.env.OPENCHAMBER_RUNTIME === 'desktop' && 
+         !isEnvFlagEnabled(process.env.OPENCHAMBER_COMPRESS_API_DESKTOP);
 };
 
 const OPENCHAMBER_VERBOSE_REQUEST_LOGS = isEnvFlagEnabled(process.env.OPENCHAMBER_VERBOSE_REQUEST_LOGS);
