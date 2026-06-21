@@ -235,11 +235,26 @@ export const registerOpenCodeProxy = (app, deps) => {
   };
 
   const replayParsedBody = (proxyReq, req) => {
+    // If we have the original readable stream, forward it directly
+    // This is more efficient than re-serializing already parsed body
+    if (req._readableState && req._readableState.ended === false && !req._body) {
+      // Direct pipe-ing is more efficient
+      req.pipe(proxyReq);
+      return;
+    }
+    
+    // If body was already parsed (e.g., by JSON body parser)
     const body = serializeParsedBody(req, proxyReq);
     if (!body) return;
     proxyReq.setHeader('content-length', String(body.length));
     proxyReq.write(body);
   };
+
+  // Cache for proxy target resolution
+  let cachedProxyTarget = null;
+  let lastTargetResolve = 0;
+  const TARGET_CACHE_MS = 5000; // 5s cache
+  const TARGET_STALE_MS = 10000; // 10s for stale check
 
   const normalizeProxyTarget = (candidate) => {
     if (typeof candidate !== 'string') {
@@ -254,10 +269,8 @@ export const registerOpenCodeProxy = (app, deps) => {
     return trimmed.replace(/\/+$/, '');
   };
 
-  // Keep generic proxy requests on the same upstream base URL that health checks
-  // and direct fetch helpers use. This avoids split-brain state where /health
-  // succeeds against an external host but /api/* still proxies to 127.0.0.1.
-  const resolveProxyTarget = () => {
+  // Internal function for actual proxy target resolution
+  const _resolveProxyTargetInternal = () => {
     try {
       const resolved = normalizeProxyTarget(buildOpenCodeUrl('/', ''));
       if (resolved) {
@@ -277,6 +290,45 @@ export const registerOpenCodeProxy = (app, deps) => {
     }
 
     return FALLBACK_PROXY_TARGET;
+  };
+
+  // Keep generic proxy requests on the same upstream base URL that health checks
+  // and direct fetch helpers use. This avoids split-brain state where /health
+  // succeeds against an external host but /api/* still proxies to 127.0.0.1.
+  const resolveProxyTarget = () => {
+    const now = Date.now();
+
+    // Return cached value if fresh
+    if (cachedProxyTarget && now - lastTargetResolve < TARGET_CACHE_MS) {
+      return cachedProxyTarget;
+    }
+
+    // If cache is stale, return old value and update in background
+    if (cachedProxyTarget && now - lastTargetResolve < TARGET_STALE_MS) {
+      // Async update cache
+      setImmediate(() => {
+        try {
+          const newTarget = _resolveProxyTargetInternal();
+          cachedProxyTarget = newTarget;
+          lastTargetResolve = Date.now();
+        } catch {
+          // Keep old cached value
+        }
+      });
+      return cachedProxyTarget;
+    }
+
+    // Full resolve
+    const resolved = _resolveProxyTargetInternal();
+    cachedProxyTarget = resolved;
+    lastTargetResolve = now;
+    return resolved;
+  };
+
+  // Function to invalidate proxy target cache
+  const invalidateProxyTargetCache = () => {
+    cachedProxyTarget = null;
+    lastTargetResolve = 0;
   };
 
   const forwardSseRequest = async (req, res) => {
@@ -500,8 +552,9 @@ export const registerOpenCodeProxy = (app, deps) => {
   // request until OpenCode is ready (typically well under a second) lets the
   // first call simply succeed. We still 503 if readiness doesn't arrive within a
   // bounded window so genuinely-down servers fail fast.
-  const READINESS_HOLD_POLL_MS = 75;
-  const READINESS_HOLD_MAX_MS = 6000;
+  const READINESS_HOLD_POLL_MS = 200; // Increased from 75ms
+  const READINESS_HOLD_MAX_MS = 5000; // Decreased from 6000ms
+  const READINESS_HOLD_ADAPTIVE_MS = 500; // Slower polling after 2s
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const isStillWaiting = (runtimeState) => {
     const waitElapsed = runtimeState.openCodeNotReadySince === 0 ? 0 : Date.now() - runtimeState.openCodeNotReadySince;
@@ -531,10 +584,16 @@ export const registerOpenCodeProxy = (app, deps) => {
     }
 
     const deadline = Date.now() + Math.min(OPEN_CODE_READY_GRACE_MS, READINESS_HOLD_MAX_MS);
+    const startWait = Date.now();
     while (Date.now() < deadline) {
       // Client gave up (closed/aborted) — stop holding.
       if (res.writableEnded || req.aborted) return;
-      await sleep(READINESS_HOLD_POLL_MS);
+      
+      // Adaptive polling: use slower interval after 2s of waiting
+      const waitElapsed = Date.now() - startWait;
+      const pollMs = waitElapsed > 2000 ? READINESS_HOLD_ADAPTIVE_MS : READINESS_HOLD_POLL_MS;
+      
+      await sleep(pollMs);
       if (!isStillWaiting(getRuntime())) {
         return next();
       }
@@ -654,9 +713,8 @@ export const registerOpenCodeProxy = (app, deps) => {
           proxyReq.setHeader('Authorization', authHeaders.Authorization);
         }
 
-        // Defensive: request identity encoding from upstream OpenCode.
-        // This avoids compressed-body/header mismatches in multi-proxy setups.
-        proxyReq.setHeader('accept-encoding', 'identity');
+        // Removed accept-encoding: identity to allow compression
+        // This reduces network transfer between OpenChamber and OpenCode
 
         replayParsedBody(proxyReq, req);
       },

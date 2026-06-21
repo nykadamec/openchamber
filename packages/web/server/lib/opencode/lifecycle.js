@@ -9,10 +9,11 @@ const parsePositiveInt = (value, fallback) => {
 const HEALTH_CHECK_TIMEOUT_MS = parsePositiveInt(process.env.OPENCHAMBER_OPENCODE_HEALTH_TIMEOUT_MS, 5000);
 const HEALTH_CHECK_MAX_CONSECUTIVE_FAILURES = parsePositiveInt(
   process.env.OPENCHAMBER_OPENCODE_HEALTH_CONSECUTIVE_FAILURES,
-  20
+  5
 );
-const HEALTH_CHECK_INTERVAL_OVERRIDE_MS = parsePositiveInt(process.env.OPENCHAMBER_OPENCODE_HEALTH_INTERVAL_MS, 0);
-const HEALTH_CHECK_RESULT_CACHE_MS = parsePositiveInt(process.env.OPENCHAMBER_OPENCODE_HEALTH_CACHE_MS, 750);
+const HEALTH_CHECK_INTERVAL_MS = parsePositiveInt(process.env.OPENCHAMBER_OPENCODE_HEALTH_INTERVAL_MS, 30000);
+const HEALTH_CHECK_INTERVAL_OVERRIDE_MS = parsePositiveInt(process.env.OPENCHAMBER_OPENCODE_HEALTH_INTERVAL_OVERRIDE_MS, 0);
+const HEALTH_CHECK_RESULT_CACHE_MS = parsePositiveInt(process.env.OPENCHAMBER_OPENCODE_HEALTH_CACHE_MS, 1000);
 const OPENCODE_HEALTH_PATH = '/global/health';
 
 export const createOpenCodeLifecycleRuntime = (deps) => {
@@ -539,10 +540,24 @@ export const createOpenCodeLifecycleRuntime = (deps) => {
       return;
     }
 
+    // Track restart count for exponential backoff
+    const restartCount = (state.restartCount || 0) + 1;
+    state.restartCount = restartCount;
+
+    // Exponential backoff: 0, 1s, 2s, 4s, 8s, max 16s
+    const backoffMs = restartCount > 1 ? Math.min(16000, Math.pow(2, restartCount - 1) * 1000) : 0;
+
     state.currentRestartPromise = (async () => {
       state.isRestartingOpenCode = true;
       state.isOpenCodeReady = false;
       state.openCodeNotReadySince = Date.now();
+
+      // Apply backoff delay for repeated restarts
+      if (backoffMs > 0) {
+        console.log(`[lifecycle] Waiting ${backoffMs}ms before restart (attempt ${restartCount})...`);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+      }
+
       console.log('Restarting OpenCode process...');
 
       if (state.isExternalOpenCode) {
@@ -606,6 +621,9 @@ export const createOpenCodeLifecycleRuntime = (deps) => {
       state.lastOpenCodeError = null;
       state.openCodeProcess = await startOpenCode();
       syncToHmrState();
+
+      // Reset restart counter on successful restart
+      state.restartCount = 0;
 
       if (state.expressApp) {
         setupProxy(state.expressApp);
@@ -920,7 +938,7 @@ export const createOpenCodeLifecycleRuntime = (deps) => {
       clearInterval(state.healthCheckInterval);
     }
 
-    const effectiveIntervalMs = HEALTH_CHECK_INTERVAL_OVERRIDE_MS || healthCheckIntervalMs;
+    const effectiveIntervalMs = HEALTH_CHECK_INTERVAL_OVERRIDE_MS || healthCheckIntervalMs || HEALTH_CHECK_INTERVAL_MS;
 
     state.healthCheckInterval = setInterval(async () => {
       try {
