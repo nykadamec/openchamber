@@ -705,8 +705,6 @@ export const registerOpenCodeProxy = (app, deps) => {
     pathRewrite: { '^/api': '' },
     // Dynamic target — port can change after restart
     router: () => resolveProxyTarget(),
-    // Disable chunk buffering for better streaming performance
-    buffer: { chunk: false },
     on: {
       proxyReq: (proxyReq, req) => {
         // Inject OpenCode auth headers
