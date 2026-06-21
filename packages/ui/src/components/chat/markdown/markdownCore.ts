@@ -349,6 +349,22 @@ const parseBlock = async (block: MarkdownBlock): Promise<string> => {
   return sanitize(highlighted);
 };
 
+/**
+ * Synchronous styled render for the first paint, before the async pipeline
+ * (Shiki-in-worker highlight) resolves. Produces the SAME structural HTML as
+ * `renderMarkdownBlocks` minus syntax coloring: paragraphs, lists, code blocks
+ * and bold all render at their final width, so the async pass only upgrades
+ * code-block colors — no flash of full-width raw markdown source. `parser.parse`
+ * is synchronous (marked is not configured `async`), so this never blocks on a
+ * worker round-trip.
+ */
+export const renderMarkdownSync = (text: string): string => {
+  if (!text) return '';
+  const parsed = parser.parse(text) as string;
+  const withMath = renderMathExpressions(parsed);
+  return sanitize(withMath);
+};
+
 export type RenderedBlock = {
   // Stable identity across renders for per-block DOM reconciliation. Encodes
   // content + mode + highlight so any change forces that block (and only that
