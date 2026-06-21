@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 - Build: version bumped to 1.12.4 across all workspace packages.
 - Note: this fork retains the 1.12.3 codebase and applies a focused cherry-pick against upstream v1.12.4. New upstream 1.12.4 features (/handoff-review, Mermaid diagram editor, settings search, vim mode, fast-path worktree, context menu, Git changed-file folders revert) were not transferred in this release because each requires coordinated changes across multiple subsystems (server APIs, SDK types, runtime registry, i18n keys) that conflict with the fork's preservation goals and the no-new-deps constraint.
 
-## [1.13.2] - 2026-06-18
+## [1.13.3] - 2026-06-18
 
 - Chat/Performance: long conversations and large session lists now stay smooth and responsive while a response is streaming (thanks to @bashrusakh).
 - Chat: the end of a streamed response is no longer occasionally cut off — messages now always settle on their complete text (thanks to @IbrahimKhan12).
