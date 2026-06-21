@@ -1203,4 +1203,4 @@ function SessionGroupSectionComponent(props: Props): React.ReactNode {
   );
 }
 
-export const SessionGroupSection = React.memo(SessionGroupSectionBase, areGroupPropsEqual);
+export const SessionGroupSection = React.memo(SessionGroupSectionComponent, areGroupPropsEqual);

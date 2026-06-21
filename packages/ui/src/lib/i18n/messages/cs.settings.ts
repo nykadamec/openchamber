@@ -392,6 +392,7 @@ export const settingsDict = {
   'settings.agents.sidebar.toast.agentExists': 'Agent s tímto jménem již existuje',
   'settings.agents.sidebar.toast.removeOldAfterRenameFailed': 'Nepodařilo se odstranit starého agenta po přejmenování',
   'settings.agents.sidebar.toast.renameFailed': 'Nepodařilo se přejmenovat agenta',
+  'settings.agents.sidebar.toast.definitionNotFound': 'Definice agenta nebyla nalezena. Žádné změny nebyly provedeny.',
   'settings.agents.page.toast.permissionNameRequired': 'Název oprávnění je vyžadován',
   'settings.agents.page.toast.created': 'Agent byl úspěšně vytvořen',
   'settings.agents.page.toast.updated': 'Agent byl aktualizován',

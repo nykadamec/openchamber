@@ -96,10 +96,6 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
     return props.sectionsForRender.filter((section) => section.project.id === props.focusedProjectId);
   }, [props.sectionsForRender, props.focusedProjectId]);
 
-  if (experimentalSidebar && !props.sharedSessionsOnly) {
-    return <MinimalProjectsList {...props} />;
-  }
-
   // Threaded into SessionGroupSection so the archived-bucket virtualizer
   // can resolve the scrolling ancestor synchronously (no getComputedStyle
   // walk) and skip the cost of a style recalc on every render.
@@ -132,6 +128,10 @@ export function SidebarProjectsList(props: Props): React.ReactNode {
     }
     return ordered;
   };
+
+  if (experimentalSidebar && !props.sharedSessionsOnly) {
+    return <MinimalProjectsList {...props} />;
+  }
 
   if (props.sharedSessionsOnly) {
     return (
