@@ -23,7 +23,8 @@ export type SettingsPageSlug =
   | 'notifications'
   | 'voice'
   | 'tunnel'
-  | 'about';
+  | 'about'
+  | 'app';
 
 export type SettingsPageGroup =
   | 'appearance'
@@ -71,6 +72,13 @@ export const SETTINGS_PAGE_METADATA: readonly SettingsPageMeta[] = [
     kind: 'single',
     description: 'Search and jump to common pages.',
     keywords: ['search', 'settings'],
+  },
+  {
+    slug: 'app',
+    title: 'App',
+    group: 'general',
+    kind: 'single',
+    keywords: ['app', 'application', 'update', 'branch', 'repo', 'repository', 'fork'],
   },
   {
     slug: 'projects',

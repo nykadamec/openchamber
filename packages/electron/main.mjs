@@ -2466,6 +2466,16 @@ const compareSemver = (left, right) => {
 };
 
 const parseGithubRepo = () => {
+  try {
+    const configPath = path.join(
+      process.env.HOME || process.env.USERPROFILE || '',
+      '.config', 'openchamber', 'update-branch.json'
+    );
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    if (config?.branch === 'modified') {
+      return { owner: 'nykadamec', repo: 'openchamber' };
+    }
+  } catch {}
   return { owner: 'openchamber', repo: 'openchamber' };
 };
 

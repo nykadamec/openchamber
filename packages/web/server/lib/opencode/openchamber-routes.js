@@ -54,6 +54,30 @@ export const registerOpenChamberRoutes = (app, dependencies) => {
     }
   });
 
+  app.post('/api/openchamber/update-branch', async (req, res) => {
+    try {
+      const { branch } = req.body;
+      if (branch !== 'original' && branch !== 'modified') {
+        return res.status(400).json({ error: 'Invalid branch value' });
+      }
+      const configDir = path.join(
+        process.env.HOME || process.env.USERPROFILE || '',
+        '.config', 'openchamber'
+      );
+      const configPath = path.join(configDir, 'update-branch.json');
+      fs.mkdirSync(configDir, { recursive: true });
+      fs.writeFileSync(
+        configPath,
+        JSON.stringify({ branch }, null, 2),
+        { encoding: 'utf8' }
+      );
+      res.json({ success: true, branch });
+    } catch (error) {
+      console.error('Failed to save update branch:', error);
+      res.status(500).json({ error: 'Failed to save branch' });
+    }
+  });
+
   app.post('/api/openchamber/update-install', async (_req, res) => {
     try {
       const { spawn: spawnChild } = await import('child_process');

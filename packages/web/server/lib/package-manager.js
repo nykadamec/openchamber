@@ -717,10 +717,32 @@ export async function fetchChangelogNotes(fromVersion, toVersion) {
   }
 }
 
+function getUpdateBranch() {
+  try {
+    const configPath = path.join(
+      process.env.HOME || process.env.USERPROFILE || '',
+      '.config', 'openchamber', 'update-branch.json'
+    );
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    return config?.branch === 'modified' ? 'modified' : 'original';
+  } catch {
+    return 'original';
+  }
+}
+
+function getUpdateBranchRepo() {
+  const branch = getUpdateBranch();
+  if (branch === 'modified') {
+    return { owner: 'nykadamec', repo: 'openchamber' };
+  }
+  return { owner: 'openchamber', repo: 'openchamber' };
+}
+
 export async function checkForUpdates(options = {}) {
   const currentVersion = options.currentVersion || getCurrentVersion();
   const pm = detectPackageManager();
   const appType = normalizeAppType(options.appType);
+  const branchRepo = getUpdateBranchRepo();
 
   if (currentVersion !== 'unknown') {
     const remote = await checkForUpdatesFromApi(currentVersion, options);
@@ -735,6 +757,8 @@ export async function checkForUpdates(options = {}) {
         ...remote,
         packageManager: pm,
         updateCommand: 'openchamber update',
+        branch: getUpdateBranch(),
+        repoUrl: `https://github.com/${branchRepo.owner}/${branchRepo.repo}`,
       };
     }
   }
@@ -763,6 +787,8 @@ export async function checkForUpdates(options = {}) {
     packageManager: pm,
     // Show our CLI command, not raw package manager command
     updateCommand: 'openchamber update',
+    branch: getUpdateBranch(),
+    repoUrl: `https://github.com/${branchRepo.owner}/${branchRepo.repo}`,
   };
 }
 

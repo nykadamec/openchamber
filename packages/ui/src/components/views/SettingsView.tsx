@@ -82,6 +82,7 @@ interface SettingsViewProps {
 }
 
 const pageOrder: SettingsPageSlug[] = [
+  'app',
   'appearance',
   'chat',
   'notifications',
@@ -215,6 +216,8 @@ export function getSettingsNavIcon(slug: SettingsPageSlug): IconName | null {
       return 'global';
     case 'about':
       return 'information';
+    case 'app':
+      return 'settings-3';
     case 'home':
       return null;
     default:
@@ -475,6 +478,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
     notifications: 'notifications',
     voice: 'voice',
     tunnel: 'tunnel',
+    app: 'app',
   }), []);
 
   const getPageTitle = React.useCallback((slug: SettingsPageSlug): string => {
@@ -523,6 +527,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
         return t('settings.page.tunnel.title');
       case 'about':
         return t('settings.page.about.title');
+      case 'app':
+        return t('settings.page.app.title');
       case 'home':
       default:
         return t('settings.view.home.title');
@@ -810,7 +816,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onClose, forceMobile
       case 'sessions':
       case 'notifications':
       case 'voice':
-      case 'tunnel': {
+      case 'tunnel':
+      case 'app': {
         const section = openChamberSectionBySlug[slug] ?? 'visual';
         return <OpenChamberPage section={section} />;
       }
