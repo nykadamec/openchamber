@@ -133,66 +133,63 @@ export const AppSettings: React.FC = () => {
         </div>
       </div>
 
-      <section className="px-2 pb-2 pt-0 space-y-2">
-        <h4 className="typography-ui-header font-medium text-foreground">
-          {t('settings.openchamber.visual.section.localization')}
-        </h4>
+      <div className="rounded-lg bg-[var(--surface-elevated)]/70 overflow-hidden">
+        <section className="px-2 pb-2 pt-0 space-y-2">
+          <h4 className="typography-ui-header font-medium text-foreground">
+            {t('settings.openchamber.visual.section.localization')}
+          </h4>
 
-        <div data-settings-item="app.language" className="grid grid-cols-1 gap-2 py-1.5 md:grid-cols-[14rem_auto] md:gap-x-8 md:gap-y-2">
-          <div className="flex min-w-0 flex-col">
-            <span className="typography-ui-label text-foreground shrink-0">{t('settings.appearance.language.label')}</span>
-            <span className="typography-meta text-muted-foreground">{t('settings.appearance.language.description')}</span>
-          </div>
-          <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
-            <SelectTrigger aria-label={t('settings.appearance.language.select')} className="w-fit">
-              <SelectValue>{label(locale)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {locales.map((availableLocale) => (
-                <SelectItem key={availableLocale} value={availableLocale}>
-                  {label(availableLocale)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="grid grid-cols-1 gap-2 py-1.5 md:grid-cols-[14rem_auto] md:gap-x-8 md:gap-y-2">
-          <div data-settings-item="app.time-format" className="flex min-w-0 items-center gap-2">
-            <span className="typography-ui-label text-foreground shrink-0">{t('settings.openchamber.visual.field.timeFormat')}</span>
-            <Select value={timeFormatPreference} onValueChange={handleTimeFormatPreferenceChange}>
-              <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectTimeFormatAria')} className="w-fit">
-                <SelectValue>{selectedTimeFormatLabel}</SelectValue>
+          <div data-settings-item="app.language" className="grid grid-cols-1 gap-2 py-1.5 md:grid-cols-[14rem_auto] md:gap-x-8 md:gap-y-2">
+            <div className="flex min-w-0 flex-col">
+              <span className="typography-ui-label text-foreground shrink-0">{t('settings.appearance.language.label')}</span>
+              <span className="typography-meta text-muted-foreground">{t('settings.appearance.language.description')}</span>
+            </div>
+            <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
+              <SelectTrigger aria-label={t('settings.appearance.language.select')} className="w-fit">
+                <SelectValue>{label(locale)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {TIME_FORMAT_OPTIONS.map((option) => (
-                  <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
+                {locales.map((availableLocale) => (
+                  <SelectItem key={availableLocale} value={availableLocale}>
+                    {label(availableLocale)}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div data-settings-item="app.week-start" className="flex min-w-0 items-center gap-2">
-            <span className="typography-ui-label text-foreground shrink-0">{t('settings.openchamber.visual.field.weekStartsOn')}</span>
-            <Select value={weekStartPreference} onValueChange={handleWeekStartPreferenceChange}>
-              <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectWeekStartAria')} className="w-fit">
-                <SelectValue>{selectedWeekStartLabel}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {WEEK_START_OPTIONS.map((option) => (
-                  <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </section>
 
-      <section className="px-2 pb-2 pt-0 space-y-2">
-        <h4 className="typography-ui-header font-medium text-foreground">
-          {t('settings.openchamber.about.title')}
-        </h4>
-        <AboutAppSettings />
-      </section>
+          <div className="grid grid-cols-1 gap-2 py-1.5 md:grid-cols-[14rem_auto] md:gap-x-8 md:gap-y-2">
+            <div data-settings-item="app.time-format" className="flex min-w-0 items-center gap-2">
+              <span className="typography-ui-label text-foreground shrink-0">{t('settings.openchamber.visual.field.timeFormat')}</span>
+              <Select value={timeFormatPreference} onValueChange={handleTimeFormatPreferenceChange}>
+                <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectTimeFormatAria')} className="w-fit">
+                  <SelectValue>{selectedTimeFormatLabel}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {TIME_FORMAT_OPTIONS.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div data-settings-item="app.week-start" className="flex min-w-0 items-center gap-2">
+              <span className="typography-ui-label text-foreground shrink-0">{t('settings.openchamber.visual.field.weekStartsOn')}</span>
+              <Select value={weekStartPreference} onValueChange={handleWeekStartPreferenceChange}>
+                <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectWeekStartAria')} className="w-fit">
+                  <SelectValue>{selectedWeekStartLabel}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {WEEK_START_OPTIONS.map((option) => (
+                    <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <AboutAppSettings />
     </div>
   );
 };

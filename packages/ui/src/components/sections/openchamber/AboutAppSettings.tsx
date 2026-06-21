@@ -101,7 +101,6 @@ export const AboutAppSettings: React.FC = () => {
       <div className="w-full space-y-6 pb-2">
         <div className="flex flex-col items-center text-center">
           <OpenChamberLogo width={72} height={72} />
-          <h2 className="mt-4 typography-ui-header font-semibold text-foreground">OpenChamber</h2>
           <div className="mt-2 space-y-1 typography-ui text-muted-foreground">
             <p>{t('aboutDialog.openChamberVersionLabel', { version: currentOpenChamberVersion })}</p>
             <p>{t('aboutDialog.openCodeVersionLabel', { version: currentOpenCodeVersion || t('settings.openchamber.about.state.unknown') })}</p>
