@@ -116,7 +116,7 @@ export const AboutAppSettings: React.FC = () => {
               disabled={isCheckingUpdates}
               className="h-10 w-auto justify-center gap-2 rounded-xl px-4"
             >
-              {isCheckingUpdates ? <Icon name="loader" className="size-4 animate-spin" /> : <Icon name="refresh" className="size-4" />}
+              {isCheckingUpdates ? <Icon name="loader-4" className="size-4 animate-spin" /> : <Icon name="refresh" className="size-4" />}
               {isCheckingUpdates ? t('settings.openchamber.about.state.checking') : t('settings.openchamber.about.actions.checkForUpdates')}
             </Button>
           )}
@@ -198,107 +198,129 @@ export const AboutAppSettings: React.FC = () => {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-lg bg-[var(--surface-elevated)]/70 overflow-hidden flex flex-col">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-4 py-3 border-b border-[var(--surface-subtle)]">
+    <div className="space-y-4">
+      {/* Header with logo and version */}
+      <div className="rounded-lg bg-[var(--surface-elevated)]/70 overflow-hidden border border-[var(--surface-subtle)]">
+        <div className="flex flex-col items-center gap-3 px-4 py-6">
+          <OpenChamberLogo width={48} height={48} />
+          <div className="text-center">
+            <h3 className="typography-ui-header font-semibold text-foreground">
+              {t('settings.openchamber.about.title')}
+            </h3>
+            <p className="typography-meta text-muted-foreground">
+              {t('settings.openchamber.about.field.version')} {currentOpenChamberVersion} • 
+              {t('settings.openchamber.about.field.openCodeVersion')} {currentOpenCodeVersion}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Version details card */}
+      <div className="rounded-lg bg-[var(--surface-elevated)]/70 overflow-hidden border border-[var(--surface-subtle)]">
+        <div className="grid grid-cols-2 gap-4 px-4 py-3">
           <div className="flex min-w-0 flex-col">
-            <span className="typography-ui-label text-foreground">
+            <span className="typography-ui-label text-muted-foreground">
               {t('settings.openchamber.about.field.version')}
             </span>
-            <span className="typography-meta text-muted-foreground font-mono">
+            <span className="typography-meta text-foreground font-mono">
               {currentOpenChamberVersion}
             </span>
           </div>
           <div className="flex min-w-0 flex-col">
-            <span className="typography-ui-label text-foreground">
+            <span className="typography-ui-label text-muted-foreground">
               {t('settings.openchamber.about.field.openCodeVersion')}
             </span>
-            <span className="typography-meta text-muted-foreground font-mono">
+            <span className="typography-meta text-foreground font-mono">
               {currentOpenCodeVersion}
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-3 px-4 py-3">
-          {isCheckingUpdates && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Icon name="loader" className="h-4 w-4 animate-spin" />
-              <span className="typography-meta">{t('settings.openchamber.about.state.checking')}</span>
-            </div>
-          )}
-          {!isCheckingUpdates && updateStore.available && (
-            <Button
-              size="sm"
-              variant="default"
-              onClick={() => setUpdateDialogOpen(true)}
-              className="h-8"
-            >
-              <Icon name="download" className="h-4 w-4 mr-1" />
-              {t('settings.openchamber.about.actions.updateToVersion', {
-                version: updateStore.info?.version || ''
-              })}
-            </Button>
-          )}
-          {!isCheckingUpdates && !updateStore.available && !updateStore.error && (
-            <span className="typography-meta text-muted-foreground">
-              {t('settings.openchamber.about.state.upToDate')}
-            </span>
-          )}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => updateStore.checkForUpdates()}
-            disabled={isCheckingUpdates}
-            className="h-8"
-          >
-            {t('settings.openchamber.about.actions.checkForUpdates')}
-          </Button>
-        </div>
-        {updateStore.error && (
-          <div className="px-3 py-2 border-t border-[var(--surface-subtle)]">
-            <p className="typography-meta text-[var(--status-error)]">{updateStore.error}</p>
+      </div>
+
+      {/* Update check */}
+      <div className="flex items-center justify-end gap-3 px-1">
+        {isCheckingUpdates && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Icon name="loader-4" className="size-4 animate-spin" />
+            <span className="typography-meta">{t('settings.openchamber.about.state.checking')}</span>
           </div>
         )}
+        {!isCheckingUpdates && updateStore.available && (
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => setUpdateDialogOpen(true)}
+            className="h-8"
+          >
+            <Icon name="download" className="size-4 mr-1" />
+            {t('settings.openchamber.about.actions.updateToVersion', {
+              version: updateStore.info?.version || ''
+            })}
+          </Button>
+        )}
+        {!isCheckingUpdates && !updateStore.available && !updateStore.error && (
+          <span className="typography-meta text-muted-foreground">
+            {t('settings.openchamber.about.state.upToDate')}
+          </span>
+        )}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => updateStore.checkForUpdates()}
+          disabled={isCheckingUpdates}
+          className="h-8"
+        >
+          {t('settings.openchamber.about.actions.checkForUpdates')}
+        </Button>
       </div>
-      <div className="rounded-lg bg-[var(--surface-elevated)]/70 overflow-hidden">
-        <div className="flex items-center gap-4 px-4 py-4">
+      {updateStore.error && (
+        <div className="px-3 py-2 rounded-lg bg-[var(--status-error-background)] border border-[var(--status-error-border)]">
+          <p className="typography-meta text-[var(--status-error)]">{updateStore.error}</p>
+        </div>
+      )}
+
+      {/* Community links grid */}
+      <div className="rounded-lg bg-[var(--surface-elevated)]/70 overflow-hidden border border-[var(--surface-subtle)]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-4 py-3">
           <a
             href={GITHUB_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground typography-meta transition-colors"
+            className="flex items-center gap-2 hover:bg-[var(--interactive-hover)]/10 p-2 rounded transition-colors"
           >
-            <Icon name="github-fill" className="h-4 w-4" />
-            <span>GitHub</span>
+            <Icon name="github-fill" className="size-4" />
+            <span className="typography-meta text-foreground">GitHub</span>
           </a>
           <a
             href={GITHUB_MOD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground typography-meta transition-colors"
+            className="flex items-center gap-2 hover:bg-[var(--interactive-hover)]/10 p-2 rounded transition-colors"
           >
-            <Icon name="github-fill" className="h-4 w-4" />
-            <span>Fork (nyk)</span>
+            <Icon name="github-fill" className="size-4" />
+            <span className="typography-meta text-foreground">Fork</span>
           </a>
           <a
             href={DISCORD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground typography-meta transition-colors"
+            className="flex items-center gap-2 hover:bg-[var(--interactive-hover)]/10 p-2 rounded transition-colors"
           >
-            <Icon name="discord-fill" className="h-4 w-4" />
-            <span>Discord</span>
+            <Icon name="discord-fill" className="size-4" />
+            <span className="typography-meta text-foreground">Discord</span>
           </a>
           <a
             href={X_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground typography-meta transition-colors"
+            className="flex items-center gap-2 hover:bg-[var(--interactive-hover)]/10 p-2 rounded transition-colors"
           >
-            <Icon name="twitter-xfill" className="h-4 w-4" />
-            <span>@openchamber_dev</span>
+            <Icon name="twitter-xfill" className="size-4" />
+            <span className="typography-meta text-foreground">@openchamber_dev</span>
           </a>
         </div>
       </div>
+
       <UpdateDialog
         open={updateDialogOpen}
         onOpenChange={setUpdateDialogOpen}

@@ -94,15 +94,15 @@ const URLDisplay: React.FC<URLDisplayProps> = ({ url }) => {
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <code className="typography-micro bg-[var(--surface-subtle)] px-2 py-1 rounded text-muted-foreground">
+    <div className="flex items-center gap-2 w-full">
+      <code className="typography-micro bg-[var(--surface-subtle)] px-2 py-1 rounded text-muted-foreground flex-1 truncate">
         {url}
       </code>
       <button
         type="button"
         onClick={handleCopy}
         aria-label={t('Copy URL')}
-        className="inline-flex h-7 w-7 items-center justify-center rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-interactive-hover/50 transition-colors"
+        className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-interactive-hover/50 transition-colors"
         title={t('Copy URL')}
       >
         <Icon name={copied ? 'check' : 'clipboard'} className="h-4 w-4" />
@@ -172,7 +172,7 @@ export const AppSettings: React.FC = () => {
 
       {/* REPOSITORY CARD */}
       <Card>
-        <SectionHeader icon="github" title={t('settings.app.repository.title') || 'Repository'} />
+        <SectionHeader icon="github" title={t('settings.app.repository.title')} />
         
         <div className="space-y-4">
           <SettingRow>
@@ -206,7 +206,7 @@ export const AppSettings: React.FC = () => {
 
           <div className="border-t pt-4" style={{ borderTopColor: 'rgba(255, 255, 255, 0.1)' }}>
             <label className="typography-ui-label block mb-2 text-foreground">
-              {t('settings.app.repository.url') || 'Repository URL'}
+              {t('settings.app.repository.url')}
             </label>
             <URLDisplay url={CONFIG_BRANCH_URLS[branch]} />
           </div>
@@ -215,7 +215,7 @@ export const AppSettings: React.FC = () => {
 
       {/* LOCALIZATION CARD */}
       <Card>
-        <SectionHeader icon="earth" title={t('settings.openchamber.visual.section.localization') || 'Localization & Regional'} />
+        <SectionHeader icon="earth" title={t('settings.openchamber.visual.section.localization')} />
         
         <div className="space-y-4">
           <SettingRow>
@@ -250,7 +250,7 @@ export const AppSettings: React.FC = () => {
                   {t('settings.openchamber.visual.field.timeFormat')}
                 </label>
                 <span className="typography-meta text-muted-foreground">
-                  {t('settings.openchamber.visual.field.timeFormatDescription') || 'How times are displayed'}
+                  {t('settings.openchamber.visual.field.timeFormatDescription')}
                 </span>
               </div>
               <div className="md:justify-self-end">
@@ -273,7 +273,7 @@ export const AppSettings: React.FC = () => {
                   {t('settings.openchamber.visual.field.weekStartsOn')}
                 </label>
                 <span className="typography-meta text-muted-foreground">
-                  {t('settings.openchamber.visual.field.weekStartsOnDescription') || 'First day of the week in calendars'}
+                  {t('settings.openchamber.visual.field.weekStartsOnDescription')}
                 </span>
               </div>
               <div className="md:justify-self-end">
@@ -295,7 +295,7 @@ export const AppSettings: React.FC = () => {
 
       {/* ABOUT CARD */}
       <Card>
-        <SectionHeader icon="information" title={t('settings.page.about.title') || 'About'} />
+        <SectionHeader icon="information" title={t('settings.page.about.title')} />
         
         <div className="space-y-4">
           <AboutAppSettings />
