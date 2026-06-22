@@ -37,7 +37,7 @@ export const SettingsPageLayout: React.FC<SettingsPageLayoutProps> = ({
     >
       <div
         className={cn(
-          'mx-auto max-w-3xl space-y-6 p-3 sm:p-6 sm:pt-8',
+          'mx-auto max-w-4xl space-y-6 p-3 sm:p-6 sm:pt-8',
           className
         )}
       >

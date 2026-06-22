@@ -73,7 +73,7 @@ interface SettingRowProps {
 }
 
 const SettingRow: React.FC<SettingRowProps> = ({ children }) => (
-  <div className="grid grid-cols-1 gap-3 md:grid-cols-[16rem_auto] md:gap-4 items-center">
+  <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:gap-4 items-center">
     {children}
   </div>
 );
@@ -184,7 +184,7 @@ export const AppSettings: React.FC = () => {
                 {t('settings.app.updateBranch.description')}
               </span>
             </div>
-            <div>
+            <div className="md:justify-self-end">
               <Select value={branch} onValueChange={handleBranchChange}>
                 <SelectTrigger
                   aria-label={t('settings.app.updateBranch.select')}
@@ -227,7 +227,7 @@ export const AppSettings: React.FC = () => {
                 {t('settings.appearance.language.description')}
               </span>
             </div>
-            <div>
+            <div className="md:justify-self-end">
               <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
                 <SelectTrigger aria-label={t('settings.appearance.language.select')} className="w-fit">
                   <SelectValue>{label(locale)}</SelectValue>
@@ -253,7 +253,7 @@ export const AppSettings: React.FC = () => {
                   {t('settings.openchamber.visual.field.timeFormatDescription') || 'How times are displayed'}
                 </span>
               </div>
-              <div>
+              <div className="md:justify-self-end">
                 <Select value={timeFormatPreference} onValueChange={handleTimeFormatPreferenceChange}>
                   <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectTimeFormatAria')} className="w-fit">
                     <SelectValue>{selectedTimeFormatLabel}</SelectValue>
@@ -276,7 +276,7 @@ export const AppSettings: React.FC = () => {
                   {t('settings.openchamber.visual.field.weekStartsOnDescription') || 'First day of the week in calendars'}
                 </span>
               </div>
-              <div>
+              <div className="md:justify-self-end">
                 <Select value={weekStartPreference} onValueChange={handleWeekStartPreferenceChange}>
                   <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectWeekStartAria')} className="w-fit">
                     <SelectValue>{selectedWeekStartLabel}</SelectValue>

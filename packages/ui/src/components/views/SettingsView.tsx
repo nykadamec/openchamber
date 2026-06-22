@@ -229,7 +229,7 @@ const SettingsHome: React.FC<{ onOpen: (slug: SettingsPageSlug) => void }> = ({ 
   const { t } = useI18n();
   return (
     <div className="h-full overflow-auto">
-      <div className="mx-auto w-full max-w-3xl px-6 py-6 space-y-6">
+      <div className="mx-auto w-full max-w-4xl px-6 py-6 space-y-6">
         <div className="space-y-1">
           <h1 className="typography-ui-header font-semibold text-foreground">{t('settings.view.home.title')}</h1>
           <p className="typography-ui text-muted-foreground">{t('settings.view.home.description')}</p>
