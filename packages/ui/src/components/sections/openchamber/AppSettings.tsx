@@ -4,6 +4,9 @@ import { useI18n, type Locale } from '@/lib/i18n';
 import { useUIStore } from '@/stores/useUIStore';
 import { updateDesktopSettings } from '@/lib/persistence';
 import { AboutAppSettings } from './AboutAppSettings';
+import { Icon } from '@/components/icon/Icon';
+import { copyTextToClipboard } from '@/lib/clipboard';
+import { runtimeFetch } from '@/lib/runtime-fetch';
 
 const STORAGE_KEY = 'openchamber-update-branch';
 
@@ -49,6 +52,76 @@ const WEEK_START_OPTIONS = [
   { id: 'sunday' as const, labelKey: 'settings.openchamber.visual.option.weekStart.sunday.label' },
 ];
 
+// Section Header component
+interface SectionHeaderProps {
+  icon: string;
+  title: string;
+}
+
+const SectionHeader: React.FC<SectionHeaderProps> = ({ icon, title }) => (
+  <div className="flex items-center gap-2 pb-2 mb-4 border-b" style={{ borderBottomColor: 'rgba(255, 255, 255, 0.1)' }}>
+    <Icon name={icon as any} className="h-4 w-4 text-muted-foreground/70" />
+    <h3 className="typography-micro font-semibold text-muted-foreground/60 uppercase tracking-wider">
+      {title}
+    </h3>
+  </div>
+);
+
+// Setting Row component
+interface SettingRowProps {
+  children: React.ReactNode;
+}
+
+const SettingRow: React.FC<SettingRowProps> = ({ children }) => (
+  <div className="grid grid-cols-1 gap-3 md:grid-cols-[16rem_auto] md:gap-4 items-center">
+    {children}
+  </div>
+);
+
+// URL Display with Copy component
+interface URLDisplayProps {
+  url: string;
+}
+
+const URLDisplay: React.FC<URLDisplayProps> = ({ url }) => {
+  const { t } = useI18n();
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = async () => {
+    await copyTextToClipboard(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <code className="typography-micro bg-[var(--surface-subtle)] px-2 py-1 rounded text-muted-foreground">
+        {url}
+      </code>
+      <button
+        type="button"
+        onClick={handleCopy}
+        aria-label={t('Copy URL')}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-interactive-hover/50 transition-colors"
+        title={t('Copy URL')}
+      >
+        <Icon name={copied ? 'check' : 'clipboard'} className="h-4 w-4" />
+      </button>
+    </div>
+  );
+};
+
+// Card component
+interface CardProps {
+  children: React.ReactNode;
+}
+
+const Card: React.FC<CardProps> = ({ children }) => (
+  <div className="rounded-xl bg-[var(--surface-elevated)] border border-border/20 shadow-sm p-5">
+    {children}
+  </div>
+);
+
 export const AppSettings: React.FC = () => {
   const { t } = useI18n();
   const [branch, setBranch] = React.useState<Branch>(getStoredBranch);
@@ -60,7 +133,7 @@ export const AppSettings: React.FC = () => {
     }
   };
 
-  // === LOKALIZACE ===
+  // Localization
   const { locale, locales, setLocale, label } = useI18n();
   const tUnsafe = React.useCallback((key: string) => t(key as Parameters<typeof t>[0]), [t]);
   
@@ -90,104 +163,144 @@ export const AppSettings: React.FC = () => {
   }, [weekStartPreference, tUnsafe]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div>
         <h3 className="typography-ui-header font-semibold text-foreground">
           {t('settings.page.app.title')}
         </h3>
       </div>
-      <div className="rounded-lg bg-[var(--surface-elevated)]/70 overflow-hidden">
-        <div
-          data-settings-item="app.update-branch"
-          className="grid grid-cols-1 gap-2 p-4 md:grid-cols-[14rem_auto] md:gap-x-8 md:gap-y-2"
-        >
-          <div className="flex min-w-0 flex-col">
-            <span className="typography-ui-label text-foreground shrink-0">
-              {t('settings.app.updateBranch.label')}
-            </span>
-            <span className="typography-meta text-muted-foreground">
-              {t('settings.app.updateBranch.description')}
-            </span>
-          </div>
-          <Select value={branch} onValueChange={handleBranchChange}>
-            <SelectTrigger
-              aria-label={t('settings.app.updateBranch.select')}
-              className="w-fit"
-            >
-              <SelectValue>
-                {branch === 'original'
-                  ? 'Original Branch'
-                  : 'Modified Branch (nykadamec)'}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="original">Original Branch</SelectItem>
-              <SelectItem value="modified">Modified Branch (nykadamec)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="border-t border-[var(--surface-subtle)] px-4 py-3">
-          <span className="typography-meta text-muted-foreground">
-            {CONFIG_BRANCH_URLS[branch]}
-          </span>
-        </div>
-      </div>
 
-      <div className="rounded-lg bg-[var(--surface-elevated)]/70 overflow-hidden">
-        <div className="p-4 space-y-4">
-          <h4 className="typography-ui-header font-medium text-foreground">
-            {t('settings.openchamber.visual.section.localization')}
-          </h4>
-          <div data-settings-item="app.language" className="grid grid-cols-1 gap-2 md:grid-cols-[14rem_auto] md:gap-x-8 md:gap-y-2">
-            <div className="flex min-w-0 flex-col">
-              <span className="typography-ui-label text-foreground shrink-0">{t('settings.appearance.language.label')}</span>
-              <span className="typography-meta text-muted-foreground">{t('settings.appearance.language.description')}</span>
+      {/* REPOSITORY CARD */}
+      <Card>
+        <SectionHeader icon="github" title={t('settings.app.repository.title') || 'Repository'} />
+        
+        <div className="space-y-4">
+          <SettingRow>
+            <div>
+              <label className="typography-ui-label block text-foreground">
+                {t('settings.app.updateBranch.label')}
+              </label>
+              <span className="typography-meta text-muted-foreground">
+                {t('settings.app.updateBranch.description')}
+              </span>
             </div>
-            <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
-              <SelectTrigger aria-label={t('settings.appearance.language.select')} className="w-fit">
-                <SelectValue>{label(locale)}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {locales.map((availableLocale) => (
-                  <SelectItem key={availableLocale} value={availableLocale}>
-                    {label(availableLocale)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-[14rem_auto] md:gap-x-8 md:gap-y-2">
-            <div data-settings-item="app.time-format" className="flex min-w-0 items-center gap-2">
-              <span className="typography-ui-label text-foreground shrink-0">{t('settings.openchamber.visual.field.timeFormat')}</span>
-              <Select value={timeFormatPreference} onValueChange={handleTimeFormatPreferenceChange}>
-                <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectTimeFormatAria')} className="w-fit">
-                  <SelectValue>{selectedTimeFormatLabel}</SelectValue>
+            <div>
+              <Select value={branch} onValueChange={handleBranchChange}>
+                <SelectTrigger
+                  aria-label={t('settings.app.updateBranch.select')}
+                  className="w-fit"
+                >
+                  <SelectValue>
+                    {branch === 'original'
+                      ? 'Original Branch'
+                      : 'Modified Branch (nykadamec)'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {TIME_FORMAT_OPTIONS.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
+                  <SelectItem value="original">Original Branch</SelectItem>
+                  <SelectItem value="modified">Modified Branch (nykadamec)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </SettingRow>
+
+          <div className="border-t pt-4" style={{ borderTopColor: 'rgba(255, 255, 255, 0.1)' }}>
+            <label className="typography-ui-label block mb-2 text-foreground">
+              {t('settings.app.repository.url') || 'Repository URL'}
+            </label>
+            <URLDisplay url={CONFIG_BRANCH_URLS[branch]} />
+          </div>
+        </div>
+      </Card>
+
+      {/* LOCALIZATION CARD */}
+      <Card>
+        <SectionHeader icon="earth" title={t('settings.openchamber.visual.section.localization') || 'Localization & Regional'} />
+        
+        <div className="space-y-4">
+          <SettingRow>
+            <div>
+              <label className="typography-ui-label block text-foreground">
+                {t('settings.appearance.language.label')}
+              </label>
+              <span className="typography-meta text-muted-foreground">
+                {t('settings.appearance.language.description')}
+              </span>
+            </div>
+            <div>
+              <Select value={locale} onValueChange={(value) => setLocale(value as Locale)}>
+                <SelectTrigger aria-label={t('settings.appearance.language.select')} className="w-fit">
+                  <SelectValue>{label(locale)}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {locales.map((availableLocale) => (
+                    <SelectItem key={availableLocale} value={availableLocale}>
+                      {label(availableLocale)}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div data-settings-item="app.week-start" className="flex min-w-0 items-center gap-2">
-              <span className="typography-ui-label text-foreground shrink-0">{t('settings.openchamber.visual.field.weekStartsOn')}</span>
-              <Select value={weekStartPreference} onValueChange={handleWeekStartPreferenceChange}>
-                <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectWeekStartAria')} className="w-fit">
-                  <SelectValue>{selectedWeekStartLabel}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {WEEK_START_OPTIONS.map((option) => (
-                    <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          </SettingRow>
+
+          <div className="border-t pt-4 space-y-4" style={{ borderTopColor: 'rgba(255, 255, 255, 0.1)' }}>
+            <SettingRow>
+              <div>
+                <label className="typography-ui-label block text-foreground">
+                  {t('settings.openchamber.visual.field.timeFormat')}
+                </label>
+                <span className="typography-meta text-muted-foreground">
+                  {t('settings.openchamber.visual.field.timeFormatDescription') || 'How times are displayed'}
+                </span>
+              </div>
+              <div>
+                <Select value={timeFormatPreference} onValueChange={handleTimeFormatPreferenceChange}>
+                  <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectTimeFormatAria')} className="w-fit">
+                    <SelectValue>{selectedTimeFormatLabel}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIME_FORMAT_OPTIONS.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </SettingRow>
+
+            <SettingRow>
+              <div>
+                <label className="typography-ui-label block text-foreground">
+                  {t('settings.openchamber.visual.field.weekStartsOn')}
+                </label>
+                <span className="typography-meta text-muted-foreground">
+                  {t('settings.openchamber.visual.field.weekStartsOnDescription') || 'First day of the week in calendars'}
+                </span>
+              </div>
+              <div>
+                <Select value={weekStartPreference} onValueChange={handleWeekStartPreferenceChange}>
+                  <SelectTrigger aria-label={t('settings.openchamber.visual.field.selectWeekStartAria')} className="w-fit">
+                    <SelectValue>{selectedWeekStartLabel}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {WEEK_START_OPTIONS.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>{tUnsafe(option.labelKey)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </SettingRow>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <AboutAppSettings />
+      {/* ABOUT CARD */}
+      <Card>
+        <SectionHeader icon="information" title={t('settings.page.about.title') || 'About'} />
+        
+        <div className="space-y-4">
+          <AboutAppSettings />
+        </div>
+      </Card>
     </div>
   );
 };
